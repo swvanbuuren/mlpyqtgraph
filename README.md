@@ -1,4 +1,6 @@
-# mlpyqtgraph - Matlab like plotting with pyqtgraph in python
+# mlpyqtgraph
+
+Matlab like plotting with pyqtgraph in python
 
 ## Installation
 
