@@ -8,7 +8,7 @@ Python package.
 
 ## License
 
-BSD style license, see the ``LICENSE`` file.
+MIT style license, see the ``LICENSE`` file.
 
 ## Examples
 
