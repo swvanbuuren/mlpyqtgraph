@@ -1,16 +1,27 @@
 # mlpyqtgraph
 
-Matplotlib like plotting with pyqtgraph in python.
+mlpyqtgraph enables |matplotlib|\ -like plotting with |pyqtgraph| in existing
+python programs.
 
 ## Installation
 
-Python package.
+mlpyqtgraph is a python package. You can install it just like any other python
+package, e.g. using ``pip``:
+
+.. code-block:: bash
+
+   pip install /path/to/mlpyqtgraph
 
 ## License
 
-MIT style license, see the ``LICENSE`` file.
+An MIT style license applies for mlpyqtgraph, see the ``LICENSE`` file for more
+details.
 
 ## Examples
 
 Please refer to ``examples``, for a few applications of mlpyqtgraph.
+
+## Documentation
+
+A documentation is currently being written and will be published soon.
 
