@@ -8,9 +8,9 @@ python programs.
 mlpyqtgraph is a python package. You can install it just like any other python
 package, e.g. using ``pip``:
 
-.. code-block:: bash
-
-   pip install /path/to/mlpyqtgraph
+``` bash
+pip install /path/to/mlpyqtgraph
+```
 
 ## License
 
