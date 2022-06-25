@@ -1,3 +1,4 @@
 {
-    "python.pythonPath": "/mnt/storage/work/python/00__venvs/py38/bin/python"
+    "python.pythonPath": "/mnt/storage/work/python/00__venvs/py38/bin/python",
+    "esbonio.sphinx.confDir": ""
 }

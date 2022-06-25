@@ -1,4 +1,10 @@
-""" Matlab like functions for easy matlab like figure and plot definitions """
+"""
+ML-like functions
+=================
+
+Matlab like functions for easy matlab like figure and plot definitions
+"""
+
 import mlpyqtgraph.worker as worker
 
 

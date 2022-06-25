@@ -1,6 +1,6 @@
 # mlpyqtgraph
 
-Matlab like plotting with pyqtgraph in python
+Matplotlib like plotting with pyqtgraph in python.
 
 ## Installation
 
@@ -13,3 +13,4 @@ MIT style license, see the ``LICENSE`` file.
 ## Examples
 
 Please refer to ``examples``, for a few applications of mlpyqtgraph.
+
