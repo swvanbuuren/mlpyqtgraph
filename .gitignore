@@ -1,3 +1,4 @@
 .vscode/
 doc/build/
+**/__pycache__
 
