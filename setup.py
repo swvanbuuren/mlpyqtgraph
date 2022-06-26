@@ -9,9 +9,7 @@ setup(
     packages=find_packages(),
     url='https://github.com/swvanbuuren',
     license='LICENSE',
-    description='Matplotlib/matlab like pyqtgraph',
+    description='Matplotlib like plotting with pyqtgraph in python ',
     long_description=open('README.md').read(),
-    install_requires=['PySide2',
-                      'shiboken2',
-                      'pyqtgraph']
+    install_requires=['pyqtgraph',]
 )
