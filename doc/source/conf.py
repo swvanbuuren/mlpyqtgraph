@@ -15,7 +15,7 @@ import sys
 import pathlib as pl
 import sphinx_immaterial
 sys.path.insert(0, pl.Path(__file__).parents[2].absolute())
-import mlpyqtgraph
+# import mlpyqtgraph
 
 
 # -- Project information -----------------------------------------------------
