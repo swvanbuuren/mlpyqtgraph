@@ -1,7 +1,7 @@
 # mlpyqtgraph
 
-mlpyqtgraph enables |matplotlib|\ -like plotting with |pyqtgraph| in existing
-python programs.
+mlpyqtgraph enables [matplotlib](https://matplotlib.org/)-like plotting with
+[pyqtgraph](https://github.com/pyqtgraph/pyqtgraph) in existing python programs.
 
 ## Installation
 
