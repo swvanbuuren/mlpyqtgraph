@@ -23,5 +23,7 @@ Please refer to ``examples``, for a few applications of mlpyqtgraph.
 
 ## Documentation
 
-A documentation is currently being written and will be published soon.
+The documentation for mlpyqtgraph is hosted at
+[mlpyqtgraph.readthedocs.io](https://mlpyqtgraph.readthedocs.io). Please note
+that the documentation is currently under construction.
 
