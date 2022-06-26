@@ -13,9 +13,11 @@
 
 import os
 import sys
-import pathlib as pl
 import sphinx_immaterial
-sys.path.insert(0, pl.Path(__file__).parents[2].absolute())
+#import pathlib as pl
+#sys.path.insert(0, pl.Path(__file__).parents[2].absolute())
+path = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, os.path.join(path, '..', '..'))
 import mlpyqtgraph
 
 
