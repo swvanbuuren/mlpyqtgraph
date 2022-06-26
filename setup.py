@@ -13,5 +13,6 @@ setup(
     license='LICENSE',
     description='Matplotlib like plotting with pyqtgraph in python ',
     long_description=open('README.md').read(),
-    install_requires=['pyqtgraph',]
+    install_requires=['pyqtgraph',
+                      'PySide2',]
 )
