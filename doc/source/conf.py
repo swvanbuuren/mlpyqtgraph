@@ -10,12 +10,12 @@
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
-# import os
+
 import sys
 import pathlib as pl
 import sphinx_immaterial
-
 sys.path.insert(0, pl.Path().absolute().parents[1])
+import mlpyqtgraph
 
 
 # -- Project information -----------------------------------------------------
