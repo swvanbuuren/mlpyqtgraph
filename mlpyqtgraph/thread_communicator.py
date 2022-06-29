@@ -4,7 +4,7 @@ sender and receiver
 """
 from copy import copy
 from contextlib import contextmanager
-import PySide2.QtCore as QtCore
+import pyqtgraph.Qt.QtCore as QtCore
 
 
 class RootTCException(Exception):

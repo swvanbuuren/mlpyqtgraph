@@ -2,8 +2,8 @@
 
 import sys
 
-import PySide2.QtWidgets as QtWidgets
-import PySide2.QtCore as QtCore
+import pyqtgraph.Qt.QtWidgets as QtWidgets
+import pyqtgraph.Qt.QtCore as QtCore
 import pyqtgraph as pg
 pg.setConfigOption('background', 'w')
 pg.setConfigOption('foreground', 'k')

@@ -2,8 +2,8 @@
 Module for controlling of and communication between worker and GUI thread
 """
 import sys
-import PySide2.QtWidgets as QtWidgets
-import PySide2.QtCore as QtCore
+import pyqtgraph.Qt.QtWidgets as QtWidgets
+import pyqtgraph.Qt.QtCore as QtCore
 
 import mlpyqtgraph.windows as windows
 import mlpyqtgraph.axes as axes

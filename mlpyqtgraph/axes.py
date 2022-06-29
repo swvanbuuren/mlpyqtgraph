@@ -1,7 +1,7 @@
 """ mlpyqtgraph axes module, with 2D and 3D Axis """
 
 import math
-import PySide2.QtCore as QtCore
+import pyqtgraph.Qt.QtCore as QtCore
 import pyqtgraph as pg
 import pyqtgraph.opengl as gl
 import pyqtgraph.functions as fn
