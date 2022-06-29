@@ -1,4 +1,7 @@
 sphinx
 sphinx_immaterial
 pyqtgraph
+PySide2
+numpy
+pyopengl
 
