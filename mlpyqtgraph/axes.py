@@ -10,7 +10,11 @@ import numpy as np
 pg.setConfigOption('background', 'w')
 pg.setConfigOption('foreground', 'k')
 pg.setConfigOptions(antialias=True)
-pg.setConfigOption('segmentedLineMode', 'on')
+NO_SEGMENTED_LINE_MODE = False
+try:
+    pg.setConfigOption('segmentedLineMode', 'on')
+except KeyError:
+    NO_SEGMENTED_LINE_MODE = True
 
 
 class RootException(Exception):
@@ -120,7 +124,8 @@ class Axis2D(pg.PlotItem):
         """
         color = kwargs.get('color', self.default_line_color())
         width = kwargs.get('width', 2.0)
-        # color = self.fix_line_artifacts(width, color)
+        if NO_SEGMENTED_LINE_MODE:
+            color = self.fix_line_artifacts(width, color)
         style = kwargs.get('style', '-')
         symbol = kwargs.get('symbol')
         symbol_size = kwargs.get('symbol_size', 5)
