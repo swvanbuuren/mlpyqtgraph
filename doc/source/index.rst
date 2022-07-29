@@ -1,23 +1,20 @@
 Welcome to mlpyqtgraph's documentation!
 =======================================
 
+mlpyqtgraph enables |matplotlib|\ -like plotting with |pyqtgraph| in existing
+python programs.
+
+Please refer to the :ref:`introduction<Introduction>` for a brief explanation of
+mlpyqtgraph or read the :ref:`getting started<Getting started>` to try
+mlpyqtgraph out right away.
+
 .. toctree::
    :maxdepth: 2
-   :caption: Contents:
 
+   mlpyqtgraph <self>
    introduction
    getting_started
-
-.. toctree::
-   :maxdepth: 2
-   :caption: API Reference:
-
+   installation
+   examples
    reference/index
-   
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+   genindex

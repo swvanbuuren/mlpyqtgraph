@@ -1,4 +1,10 @@
-""" mlpyqtgraph axes module, with 2D and 3D Axis """
+"""
+Axes
+====
+
+mlpyqtgraph axes module, with 2D and 3D Axis classes
+"""
+
 
 import math
 import pyqtgraph.Qt.QtCore as QtCore
@@ -7,14 +13,9 @@ import pyqtgraph.opengl as gl
 import pyqtgraph.functions as fn
 import OpenGL.GL as ogl
 import numpy as np
-pg.setConfigOption('background', 'w')
-pg.setConfigOption('foreground', 'k')
-pg.setConfigOptions(antialias=True)
-NO_SEGMENTED_LINE_MODE = False
-try:
-    pg.setConfigOption('segmentedLineMode', 'on')
-except KeyError:
-    NO_SEGMENTED_LINE_MODE = True
+
+import mlpyqtgraph.config_options as config
+import mlpyqtgraph.colors as colors
 
 
 class RootException(Exception):
@@ -41,16 +42,10 @@ class Axis2D(pg.PlotItem):
                   '--': QtCore.Qt.DashLine,
                   ':': QtCore.Qt.DotLine,
                   '.-': QtCore.Qt.DashDotLine}
-    line_colors = ((  0, 113, 188),
-                   (216,  82,  24),
-                   (118, 171,  47),
-                   (236, 176,  31),
-                   (125,  46, 141),
-                   ( 76, 189, 237),
-                   (161,  19,  46),
-                   ( 63,  63,  63))
-    scale_box_line_color = (175, 175, 175)
-    scale_box_fill_color = (175, 175, 175, 50)
+    colors_defs = colors.ColorDefinitions()
+    line_colors = colors_defs.get_line_colors()
+    scale_box_line_color = colors_defs.get_scale_box_colors(part='line')
+    scale_box_fill_color = colors_defs.get_scale_box_colors(part='fill')
     def __init__(self, index, parent=None, **kwargs):
         super().__init__(parent=parent, **kwargs)
         self.index = index
@@ -99,11 +94,15 @@ class Axis2D(pg.PlotItem):
         """
         Fall to conventional slower drawing method by settings alpha < 1
 
-        pyqtgraph pull request #2011 introduced a new (experimental) line drawing mode for thick
-        lines. This also leads to unwanted line artifacts if antialiasing is enabled. This method
-        causes a fallback to the old (slower) drawing method.
+        pyqtgraph pull request #2011 introduced a new (experimental) line
+        drawing mode for thick lines. This also leads to unwanted line artifacts
+        if antialiasing is enabled. This method causes a fallback to the old
+        (slower) drawing method.
         """
         if width > 1:
+            if color in fn.Colors:
+                qcolor = fn.Colors[color]
+                color = (qcolor.red(), qcolor.green(), qcolor.blue())
             return color[:3] + (254,)
         return color
 
@@ -113,18 +112,19 @@ class Axis2D(pg.PlotItem):
 
         **Keyword arguments**
 
-        ============ ==============================================================================
-        color        line color, default value will determine using :method:`default_line_color`
+        ============ ===========================================================
+        color        line color, default value will determine using
+                     :py:meth:`default_line_color()<mlpyqtgraph.axes.Axis2D.default_line_color>`
         style        line style
         width        line width
         symbol       symbol type
         symbol_size  symbol size
         symbol_color symbol color
-        ============ ==============================================================================
+        ============ ===========================================================
         """
         color = kwargs.get('color', self.default_line_color())
         width = kwargs.get('width', 2.0)
-        if NO_SEGMENTED_LINE_MODE:
+        if config.options.get_option('no_segmented_line_mode'):
             color = self.fix_line_artifacts(width, color)
         style = kwargs.get('style', '-')
         symbol = kwargs.get('symbol')

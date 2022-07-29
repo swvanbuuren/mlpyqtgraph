@@ -1,10 +1,15 @@
 """
+Controllers
+===========
+
 Module for controlling of and communication between worker and GUI thread
+
 """
 import sys
 import pyqtgraph.Qt.QtWidgets as QtWidgets
 import pyqtgraph.Qt.QtCore as QtCore
 
+import mlpyqtgraph.config_options as config
 import mlpyqtgraph.windows as windows
 import mlpyqtgraph.axes as axes
 import mlpyqtgraph.thread_communicator as tc
@@ -130,11 +135,12 @@ class FunctionRunnable(QtCore.QRunnable):
 
 class GUIController(QtCore.QObject):
     """ Controller class which coordinates all figure and axis objects """
-    def __init__(self, worker, parent=None):
-        super().__init__(parent)
+    def __init__(self, worker, **kwargs):
+        super().__init__(kwargs.get('parent'))
         self.exception_raised = False
         self.application = QtWidgets.QApplication(sys.argv)
         self.threadpool = QtCore.QThreadPool()
+        config.options.set_options(**kwargs)
         self.setup_controllers()
         self.execute(worker)
 

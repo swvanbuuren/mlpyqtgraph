@@ -1,4 +1,10 @@
-""" This modules defines all worker thread related classes and instances """
+"""
+Worker
+======
+
+This modules defines all worker thread related classes and instances
+
+"""
 import weakref
 import mlpyqtgraph.controllers as controllers
 import mlpyqtgraph.descriptors as descr

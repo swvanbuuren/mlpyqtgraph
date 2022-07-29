@@ -1,5 +1,10 @@
-""" Descriptors for attributes and methods for work thread classes in
-mlpyqtgraph """
+"""
+Descriptors
+===========
+
+Descriptors for attributes and methods for work thread classes in mlpyqtgraph
+
+"""
 
 
 class AbstractDescriptor:

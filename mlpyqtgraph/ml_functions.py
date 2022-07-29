@@ -1,8 +1,8 @@
 """
-ML-like functions
-=================
+Matplotlib-like functions
+=========================
 
-Matlab like functions for easy matlab like figure and plot definitions
+Matplotlib-like functions for easy figure and plot definitions
 """
 
 import mlpyqtgraph.worker as worker
@@ -24,6 +24,8 @@ def gcf():
 
 def gca():
     """ Returns the current axis """
+    if worker.axes_container.current is None:
+        figure()  # make sure we always have a figure
     return worker.axes_container.current
 
 
