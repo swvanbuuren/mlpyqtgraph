@@ -4,4 +4,3 @@ pyqtgraph
 PySide2
 numpy
 pyopengl
-
