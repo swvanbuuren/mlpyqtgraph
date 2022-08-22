@@ -17,13 +17,6 @@ as the "GUI thread").
 The following example illustrates how mlpyqtgraph can be used in an existing
 python program defined in ``main``.
 
-.. code-block:: python
-
-   import mlpyqtgraph as mpg
-
-   def main():
-       """ Existing program where mlpyqtgrpah plotting is available """
-       mpg.plot(range(5), (1, 3, 2, 0, 5))
-
-   if __name__ == '__main__':
-       mpg.GUIController(worker=main)
+.. literalinclude:: ../../examples/minimal.py
+   :language: python
+   :lines: 5-6, 8-10, 12-
