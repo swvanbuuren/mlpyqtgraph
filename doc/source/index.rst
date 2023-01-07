@@ -10,8 +10,14 @@ mlpyqtgraph out right away.
 
 .. toctree::
    :maxdepth: 2
+   :hidden:
 
    mlpyqtgraph <self>
+
+   
+.. toctree::
+   :maxdepth: 2
+
    introduction
    getting_started
    installation
