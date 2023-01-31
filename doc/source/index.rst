@@ -9,11 +9,10 @@ mlpyqtgraph or read the :ref:`getting started<Getting started>` to try
 mlpyqtgraph out right away.
 
 .. toctree::
-   :maxdepth: 2
    :hidden:
 
    mlpyqtgraph <self>
-
+   
 .. toctree::
    :maxdepth: 2
 
