@@ -1,7 +1,4 @@
 """
-Controllers
-===========
-
 Module for controlling of and communication between worker and GUI thread
 
 """

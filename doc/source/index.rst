@@ -14,7 +14,6 @@ mlpyqtgraph out right away.
 
    mlpyqtgraph <self>
 
-   
 .. toctree::
    :maxdepth: 2
 

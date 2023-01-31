@@ -1,7 +1,4 @@
 """
-Colors
-======
-
 The colors module defines classes to define colors
 
 """

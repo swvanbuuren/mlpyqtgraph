@@ -1,7 +1,4 @@
 """
-Matplotlib-like functions
-=========================
-
 Matplotlib-like functions for easy figure and plot definitions
 """
 

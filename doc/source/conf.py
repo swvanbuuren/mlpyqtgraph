@@ -65,8 +65,22 @@ html_theme = 'sphinx_immaterial'
 
 # material theme options (see theme.conf for more information)
 html_theme_options = {
-    "toc_title_is_page_title": True,
-    "globaltoc_collapse": True,
+    'toc_title': 'Page Contents',
+    'features': [
+        'navigation.expand',
+        # 'navigation.tabs',
+        'navigation.sections',
+        # 'navigation.instant',
+        # 'header.autohide',
+        'navigation.top',
+        # 'navigation.tracking',
+        # 'search.highlight',
+        'search.share',
+        'toc.follow',
+        'toc.sticky',
+        'content.tabs.link',
+        'announce.dismiss',
+    ],
 }
 
 # Add any paths that contain custom static files (such as style sheets) here,

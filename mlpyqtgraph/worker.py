@@ -1,7 +1,4 @@
 """
-Worker
-======
-
 This modules defines all worker thread related classes and instances
 
 """

@@ -1,7 +1,4 @@
 """
-Axes
-====
-
 mlpyqtgraph axes module, with 2D and 3D Axis classes
 """
 
@@ -326,10 +323,32 @@ class Axis3D(gl.GLViewWidget):
     def setup(self):
         """ Sets up the 3D iew widget """
         self.setCameraPosition(distance=40)
-        grid = gl.GLGridItem()
-        grid.scale(2, 2, 1)
-        grid.setDepthValue(10)  # draw grid after surfaces since they may be translucent
-        self.addItem(grid)
+
+        rotations = (
+            (90, 0, 1, 0),
+            (90, 1, 0, 0),
+            ( 0, 0, 0, 0),
+        )
+        translations = (
+            (-10,   0,   0),
+            (  0, -10,   0),
+            (  0,   0, -10)
+        )
+
+        for rot, trans in zip(rotations, translations):
+            grid = gl.GLGridItem()
+            grid.setColor(0.0)
+            grid.rotate(*rot)
+            grid.translate(*trans)
+            grid.setDepthValue(10)  # draw grid after surfaces since they may be translucent
+            self.addItem(grid)
+
+        #grid = gl.GLGridItem()
+        #grid.setColor('k')
+        #grid.scale(1, 1, 1)
+        #grid.setSize(x=1)
+        #grid.setDepthValue(10)  # draw grid after surfaces since they may be translucent
+        #self.addItem(grid)
 
     @staticmethod
     def set_colormap(surface, colormap='CET-L10'):

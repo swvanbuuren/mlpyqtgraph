@@ -1,7 +1,4 @@
 """
-Thread communicator
-===================
-
 Thread communicator module for sending and receiving information from one thread to another using a
 sender and receiver
 """

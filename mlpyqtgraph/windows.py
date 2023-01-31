@@ -1,7 +1,4 @@
 """
-Windows
-=======
-
 This module contains all classes for handling the GUI figures and axes in mlpyqtgraph
 
 """

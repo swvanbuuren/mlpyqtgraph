@@ -1,7 +1,4 @@
 """
-Configuration options
-=====================
-
 The configuration options module defines tools to acquire and change global
 configuration options
 """
