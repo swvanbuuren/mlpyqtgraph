@@ -4,10 +4,12 @@ This module contains all classes for handling the GUI figures and axes in mlpyqt
 """
 
 import sys
-
-import pyqtgraph.Qt.QtWidgets as QtWidgets
-import pyqtgraph.Qt.QtCore as QtCore
+from pyqtgraph.Qt import QtWidgets
+from pyqtgraph.Qt import QtCore
 import pyqtgraph as pg
+from pqthreads import controllers
+
+
 pg.setConfigOption('background', 'w')
 pg.setConfigOption('foreground', 'k')
 pg.setConfigOptions(antialias=True)
@@ -85,14 +87,12 @@ class FigureWindow(QtCore.QObject):
         self.window.setCentralWidget(LayoutWidget())
         return True
 
-    def create_axis(self, row=0, column=0, row_span=1, column_span=1, **kwargs):
+    def create_axis(self, index, row=0, column=0, row_span=1, column_span=1):
         """ Creates an axis and return its index """
-        if existing_axis := self.graphics_layout.getItem(row, column):
-            return existing_axis.index
-        kwargs['axis_type'] = self.axis_type
-        index, axis = self.axis_factory.produce(**kwargs)
+        if self.graphics_layout.getItem(row, column):
+            return
+        axis = controllers.gui_refs.get('axis').items[index]
         self.graphics_layout.addItem(axis, row, column, row_span, column_span)
-        return index
 
     @property
     def graphics_layout(self):

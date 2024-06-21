@@ -4,7 +4,7 @@ mlpyqtgraph axes module, with 2D and 3D Axis classes
 
 
 import math
-import pyqtgraph.Qt.QtCore as QtCore
+from pyqtgraph.Qt import QtCore
 import pyqtgraph as pg
 import pyqtgraph.opengl as gl
 import pyqtgraph.functions as fn
@@ -12,7 +12,7 @@ import OpenGL.GL as ogl
 import numpy as np
 
 import mlpyqtgraph.config_options as config
-import mlpyqtgraph.colors as colors
+from mlpyqtgraph import colors
 
 
 class RootException(Exception):
@@ -43,7 +43,8 @@ class Axis2D(pg.PlotItem):
     line_colors = colors_defs.get_line_colors()
     scale_box_line_color = colors_defs.get_scale_box_colors(part='line')
     scale_box_fill_color = colors_defs.get_scale_box_colors(part='fill')
-    def __init__(self, index, parent=None, **kwargs):
+    def __init__(self, index, **kwargs):
+        parent = kwargs.pop('parent', None)
         super().__init__(parent=parent, **kwargs)
         self.index = index
         self.setup()

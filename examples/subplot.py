@@ -6,6 +6,7 @@ import numpy as np
 import mlpyqtgraph as mpg
 
 
+@mpg.plotter
 def main():
     """ Example with subplots """
     fig = mpg.figure(title='Third figure')
@@ -24,4 +25,4 @@ def main():
 
 
 if __name__ == '__main__':
-    mpg.GUIController(worker=main)
+    main()

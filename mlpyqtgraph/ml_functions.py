@@ -2,28 +2,31 @@
 Matplotlib-like functions for easy figure and plot definitions
 """
 
-import mlpyqtgraph.worker as worker
+from pqthreads import controllers
 
 
 def figure(*args, **kwargs):
     """ Create, raise or modify FigureWorker objects """
+    container = controllers.worker_refs.get('figure')
     if not args:
-        return worker.figures_container.create(**kwargs)
+        return container.create(**kwargs)
     figure_worker = args[0]
     figure_worker.activate()
-    worker.figures_container.current = figure_worker
+    container.current = figure_worker
     return figure_worker
 
 def gcf():
     """ Returns the current figure """
-    return worker.figures_container.current
+    container = controllers.worker_refs.get('figure')
+    return container.current
 
 
 def gca():
     """ Returns the current axis """
-    if worker.axes_container.current is None:
+    container = controllers.worker_refs.get('axis')
+    if container.current is None:
         figure()  # make sure we always have a figure
-    return worker.axes_container.current
+    return container.current
 
 
 def close(figure_ref):
