@@ -15,7 +15,7 @@ from .ml_functions import *
 
 GUIAgency = controllers.GUIAgency
 GUIAgency.add_agent('figure', windows.FigureWindow)
-GUIAgency.add_agent('axis', axes.Axis2D)
+GUIAgency.add_agent('axis', axes.Axis)
 
 
 def plotter(func):
@@ -35,6 +35,8 @@ def plotter(func):
 # for more on decorators with and without input arguments...
 
 # The decorator stuff should really move the into the pqthreads package
+
+# What to do, if a decorators is used, but no plot commands are issued?
 
 def plottero(**options):
     """ Decorator for end user functions, adding figure functionality"""

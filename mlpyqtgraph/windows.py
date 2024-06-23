@@ -52,7 +52,6 @@ class FigureWindow(QtCore.QObject):
         super().__init__(parent=parent)
         self.index = index
         self.layout_type = 'None'
-        self.axis_type = '2D'
         self.window = self.setup_window(parent, width, height)
         self.change_layout()
         self.title = f'Figure {index+1}: {title}'
@@ -63,14 +62,6 @@ class FigureWindow(QtCore.QObject):
         window = QtWidgets.QMainWindow(parent)
         window.resize(width, height)
         return window
-
-    def change_axis(self, axis_type='2D'):
-        """
-        Change the figure's axis type; 2D for Axis2D or 3D for Axis3D
-
-        Returns: boolean indicating layout change
-        """
-        self.axis_type = axis_type
 
     def change_layout(self, layout_type='pg'):
         """
@@ -87,10 +78,8 @@ class FigureWindow(QtCore.QObject):
         self.window.setCentralWidget(LayoutWidget())
         return True
 
-    def create_axis(self, index, row=0, column=0, row_span=1, column_span=1):
+    def set_axis(self, index, row=0, column=0, row_span=1, column_span=1):
         """ Creates an axis and return its index """
-        if self.graphics_layout.getItem(row, column):
-            return
         axis = controllers.gui_refs.get('axis').items[index]
         self.graphics_layout.addItem(axis, row, column, row_span, column_span)
 

@@ -23,18 +23,9 @@ class InvalidAxis(RootException):
     """ Exception raised for invalid axes """
 
 
-def factory(*args, **kwargs):
-    """ Factory for creating 2D or 3D Axis objects """
-    axis_type = kwargs.pop('axis_type')
-    if axis_type == '2D':
-        return Axis2D(*args, **kwargs)
-    if axis_type == '3D':
-        return Axis3D(*args, **kwargs)
-    raise InvalidAxis(f'Invalid Axis Type: {axis_type}. Should be either 2D or 3D')
-
-
 class Axis2D(pg.PlotItem):
     """ Axis for plots in a given figure layout """
+    axis_type = '2D'
     pen_styles = {'-': QtCore.Qt.SolidLine,
                   '--': QtCore.Qt.DashLine,
                   ':': QtCore.Qt.DotLine,
@@ -277,9 +268,13 @@ class Axis2D(pg.PlotItem):
             ticks.extend(values)
         return sorted(ticks)
 
+    def delete(self):
+        """ Closes the axis """
+
 
 class Axis3D(gl.GLViewWidget):
     """ 3D axis """
+    axis_type = '3D'
 
     glOption = {
         ogl.GL_DEPTH_TEST: True,
@@ -391,3 +386,17 @@ class Axis3D(gl.GLViewWidget):
         """ Plots a single grid line for given coordinates """
         points = np.column_stack((x, y, z))
         self.addItem(gl.GLLinePlotItem(pos=points, **self.default_line_options))
+
+    def delete(self):
+        """ Closes the axis """
+
+
+class Axis:
+    """ General Axis class, creates either 2D or 3D axis """
+    def __new__(cls, *args, **kwargs):
+        axis_type = kwargs.pop('axis_type', '2D')
+        if axis_type == '2D':
+            return Axis2D(*args, **kwargs)
+        if axis_type == '3D':
+            return Axis3D(*args, **kwargs)
+        raise InvalidAxis(f'Invalid Axis Type: {axis_type}. Should be either 2D or 3D')
