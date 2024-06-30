@@ -38,9 +38,13 @@ class GridLayoutWidget(QtWidgets.QWidget):
         """ Returns the item at row, col. If empty return None """
         return self.layout().itemAtPosition(row, column)
 
-    def addItem(self, item, row, column, rowSpan=1, columnSpan=1):
+    def addItem(self, item, row=0, column=0, rowSpan=1, columnSpan=1):
         """ Adds an item at row, col with rowSpand and colSpan """
         self.layout().addWidget(item, row, column, rowSpan, columnSpan)
+
+    def removeItem(self, item):
+        """ Removes an item from the layout """
+        self.layout().removeItem(item)
 
 
 class FigureWindow(QtCore.QObject):
@@ -78,10 +82,10 @@ class FigureWindow(QtCore.QObject):
         self.window.setCentralWidget(LayoutWidget())
         return True
 
-    def set_axis(self, index, row=0, column=0, row_span=1, column_span=1):
-        """ Creates an axis and return its index """
+    def add_axis(self, index):
+        """ Adds an axis to the figure """
         axis = controllers.gui_refs.get('axis').items[index]
-        self.graphics_layout.addItem(axis, row, column, row_span, column_span)
+        self.graphics_layout.addItem(axis)
 
     @property
     def graphics_layout(self):

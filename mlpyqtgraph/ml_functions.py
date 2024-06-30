@@ -36,6 +36,7 @@ def close(figure_ref):
 
 def plot(*args, **kwargs):
     """ Plots into the current axis """
+    gcf().create_axis(axis_type='2D')
     return gca().add(*args, **kwargs)
 
 
@@ -46,6 +47,6 @@ def legend(*args):
 
 def surf(*args, **kwargs):
     """ Plots a 3D surface """
-    if gcf().change_layout('Qt'):
-        gcf().add_axis(axis_type='3D')
+    gcf().change_layout('Qt')
+    gcf().create_axis(axis_type='3D')
     gca().add(*args, **kwargs)

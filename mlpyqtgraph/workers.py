@@ -31,21 +31,19 @@ class FigureWorker(containers.WorkerItem):
     height = factory.attribute()
     raise_window = factory.method()
     change_layout = factory.method()
-    set_axis = factory.method()
+    add_axis = factory.method()
+    has_axis = factory.method()
 
     def __init__(self, *args, **kwargs):
         self.axis = None
         super().__init__(*args, **kwargs)
-        self.add_axis()
 
-    def add_axis(self, *args, **kwargs):
+    def create_axis(self, *args, **kwargs):
         """ Adds an axis to the figure worker """
-        axis_container = controllers.worker_refs.get('axis')
         if self.axis:
-            remove_axis = self.axis
-            self.axis = None
-            axis_container.close(remove_axis)
+            return
+        axis_container = controllers.worker_refs.get('axis')
         axis = axis_container.create(**kwargs)
         index = axis.index
-        self.set_axis(index)
+        self.add_axis(index)
         self.axis = axis
