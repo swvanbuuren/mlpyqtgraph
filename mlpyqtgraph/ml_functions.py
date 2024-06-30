@@ -18,6 +18,8 @@ def figure(*args, **kwargs):
 def gcf():
     """ Returns the current figure """
     container = controllers.worker_refs.get('figure')
+    if container.current is None:
+        figure()  # make sure we always have a figure
     return container.current
 
 
