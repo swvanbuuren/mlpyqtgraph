@@ -4,10 +4,12 @@ This module contains all classes for handling the GUI figures and axes in mlpyqt
 """
 
 import sys
-
-import pyqtgraph.Qt.QtWidgets as QtWidgets
-import pyqtgraph.Qt.QtCore as QtCore
+from pyqtgraph.Qt import QtWidgets
+from pyqtgraph.Qt import QtCore
 import pyqtgraph as pg
+from pqthreads import controllers
+
+
 pg.setConfigOption('background', 'w')
 pg.setConfigOption('foreground', 'k')
 pg.setConfigOptions(antialias=True)
@@ -36,9 +38,13 @@ class GridLayoutWidget(QtWidgets.QWidget):
         """ Returns the item at row, col. If empty return None """
         return self.layout().itemAtPosition(row, column)
 
-    def addItem(self, item, row, column, rowSpan=1, columnSpan=1):
+    def addItem(self, item, row=0, column=0, rowSpan=1, columnSpan=1):
         """ Adds an item at row, col with rowSpand and colSpan """
         self.layout().addWidget(item, row, column, rowSpan, columnSpan)
+
+    def removeItem(self, item):
+        """ Removes an item from the layout """
+        self.layout().removeItem(item)
 
 
 class FigureWindow(QtCore.QObject):
@@ -50,7 +56,6 @@ class FigureWindow(QtCore.QObject):
         super().__init__(parent=parent)
         self.index = index
         self.layout_type = 'None'
-        self.axis_type = '2D'
         self.window = self.setup_window(parent, width, height)
         self.change_layout()
         self.title = f'Figure {index+1}: {title}'
@@ -61,14 +66,6 @@ class FigureWindow(QtCore.QObject):
         window = QtWidgets.QMainWindow(parent)
         window.resize(width, height)
         return window
-
-    def change_axis(self, axis_type='2D'):
-        """
-        Change the figure's axis type; 2D for Axis2D or 3D for Axis3D
-
-        Returns: boolean indicating layout change
-        """
-        self.axis_type = axis_type
 
     def change_layout(self, layout_type='pg'):
         """
@@ -85,14 +82,10 @@ class FigureWindow(QtCore.QObject):
         self.window.setCentralWidget(LayoutWidget())
         return True
 
-    def create_axis(self, row=0, column=0, row_span=1, column_span=1, **kwargs):
-        """ Creates an axis and return its index """
-        if existing_axis := self.graphics_layout.getItem(row, column):
-            return existing_axis.index
-        kwargs['axis_type'] = self.axis_type
-        index, axis = self.axis_factory.produce(**kwargs)
-        self.graphics_layout.addItem(axis, row, column, row_span, column_span)
-        return index
+    def add_axis(self, index):
+        """ Adds an axis to the figure """
+        axis = controllers.gui_refs.get('axis').items[index]
+        self.graphics_layout.addItem(axis)
 
     @property
     def graphics_layout(self):

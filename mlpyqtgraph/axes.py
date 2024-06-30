@@ -4,7 +4,7 @@ mlpyqtgraph axes module, with 2D and 3D Axis classes
 
 
 import math
-import pyqtgraph.Qt.QtCore as QtCore
+from pyqtgraph.Qt import QtCore
 import pyqtgraph as pg
 import pyqtgraph.opengl as gl
 import pyqtgraph.functions as fn
@@ -12,7 +12,7 @@ import OpenGL.GL as ogl
 import numpy as np
 
 import mlpyqtgraph.config_options as config
-import mlpyqtgraph.colors as colors
+from mlpyqtgraph import colors
 
 
 class RootException(Exception):
@@ -23,18 +23,9 @@ class InvalidAxis(RootException):
     """ Exception raised for invalid axes """
 
 
-def factory(*args, **kwargs):
-    """ Factory for creating 2D or 3D Axis objects """
-    axis_type = kwargs.pop('axis_type')
-    if axis_type == '2D':
-        return Axis2D(*args, **kwargs)
-    if axis_type == '3D':
-        return Axis3D(*args, **kwargs)
-    raise InvalidAxis(f'Invalid Axis Type: {axis_type}. Should be either 2D or 3D')
-
-
 class Axis2D(pg.PlotItem):
     """ Axis for plots in a given figure layout """
+    axis_type = '2D'
     pen_styles = {'-': QtCore.Qt.SolidLine,
                   '--': QtCore.Qt.DashLine,
                   ':': QtCore.Qt.DotLine,
@@ -43,7 +34,8 @@ class Axis2D(pg.PlotItem):
     line_colors = colors_defs.get_line_colors()
     scale_box_line_color = colors_defs.get_scale_box_colors(part='line')
     scale_box_fill_color = colors_defs.get_scale_box_colors(part='fill')
-    def __init__(self, index, parent=None, **kwargs):
+    def __init__(self, index, **kwargs):
+        parent = kwargs.pop('parent', None)
         super().__init__(parent=parent, **kwargs)
         self.index = index
         self.setup()
@@ -276,9 +268,13 @@ class Axis2D(pg.PlotItem):
             ticks.extend(values)
         return sorted(ticks)
 
+    def delete(self):
+        """ Closes the axis """
+
 
 class Axis3D(gl.GLViewWidget):
     """ 3D axis """
+    axis_type = '3D'
 
     glOption = {
         ogl.GL_DEPTH_TEST: True,
@@ -390,3 +386,17 @@ class Axis3D(gl.GLViewWidget):
         """ Plots a single grid line for given coordinates """
         points = np.column_stack((x, y, z))
         self.addItem(gl.GLLinePlotItem(pos=points, **self.default_line_options))
+
+    def delete(self):
+        """ Closes the axis """
+
+
+class Axis:
+    """ General Axis class, creates either 2D or 3D axis """
+    def __new__(cls, *args, **kwargs):
+        axis_type = kwargs.pop('axis_type', '2D')
+        if axis_type == '2D':
+            return Axis2D(*args, **kwargs)
+        if axis_type == '3D':
+            return Axis3D(*args, **kwargs)
+        raise InvalidAxis(f'Invalid Axis Type: {axis_type}. Should be either 2D or 3D')

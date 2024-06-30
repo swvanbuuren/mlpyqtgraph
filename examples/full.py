@@ -7,6 +7,7 @@ import numpy as np
 import mlpyqtgraph as mpg
 
 
+@mpg.plotter
 def main():
     """ Advanced mlpyqtgraph example """
     plot_args = {'width': 2}
@@ -22,4 +23,4 @@ def main():
     mpg.gca().grid = True
 
 if __name__ == '__main__':
-    mpg.GUIController(worker=main)
+    main()
