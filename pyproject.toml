@@ -1,0 +1,36 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mlpyqtgraph"
+version = "0.1.0"
+description = "Matplotlib like plotting with pyqtgraph in python"
+readme = "README.md"
+license = { file = "LICENSE" }
+authors = [
+    { name = "Sietze van Buuren", email = "s.van.buuren@gmail.com" }
+]
+requires-python = ">=3.8"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+urls = { Homepage = "https://github.com/swvanbuuren/mlpyqtgraph" }
+dependencies = [
+    "pyqtgraph",
+    "pqthreads",
+    "pyopengl",
+]
+
+[tool.setuptools.packages.find]
+include = ["mlpyqtgraph", "mlpyqtgraph.*"]
+
+[tool.semantic_release]
+version_variables = ["mlpyqtgraph/__init__.py:__version__"]
+version_toml = ["pyproject.toml:project.version"]

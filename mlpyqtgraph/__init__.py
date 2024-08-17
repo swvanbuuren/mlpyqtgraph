@@ -8,9 +8,11 @@ from mlpyqtgraph import axes
 from mlpyqtgraph import workers
 from mlpyqtgraph import config_options as config
 
-
 from . import ml_functions
 from .ml_functions import *
+
+
+__version__ = '0.1.0'
 
 
 GUIAgency = controllers.GUIAgency

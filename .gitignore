@@ -1,4 +1,6 @@
 .vscode/
+.pytest_cache/
 doc/build/
 **/__pycache__
 mlpyqtgraph.egg-info/
+build/
