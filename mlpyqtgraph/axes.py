@@ -350,14 +350,14 @@ class Axis3D(gl.GLViewWidget):
     def set_colormap(surface, colormap='CET-L10'):
         """ Assign colormap to surface using surface height """
         heights = surface._z
-        normalized_heights = (heights - heights.min())/heights.ptp()
+        normalized_heights = (heights - heights.min())/np.ptp(heights)
         colors = pg.colormap.get(colormap).map(normalized_heights, mode='float')
         surface._meshdata.setFaceColors(colors)
 
     def set_projection_method(self, *coords, method='orthographic'):
         """ Sets the projection method, either perspective or orthographic """
         #object_size = math.sqrt(sum([coord.ptp()**2.0 for coord in coords]))
-        object_size = (sum([coord.ptp()**3.0 for coord in coords]))**(1.0/3.0)
+        object_size = (sum([np.ptp(coord)**3.0 for coord in coords]))**(1.0/3.0)
         field_of_view = 60
         if method == 'orthographic':
             field_of_view = 1

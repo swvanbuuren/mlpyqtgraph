@@ -6,7 +6,7 @@ import numpy as np
 import mlpyqtgraph as mpg
 
 
-@mpg.plottero(antialiasing=True)
+@mpg.plotter(antialiasing=True)
 def main():
     """ Examples with surface plots """
     extent = 10

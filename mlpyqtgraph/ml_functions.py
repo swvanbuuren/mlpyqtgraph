@@ -2,12 +2,12 @@
 Matplotlib-like functions for easy figure and plot definitions
 """
 
-from pqthreads import controllers
+from pqthreads import refs
 
 
 def figure(*args, **kwargs):
     """ Create, raise or modify FigureWorker objects """
-    container = controllers.worker_refs.get('figure')
+    container = refs.worker.get('figure')
     if not args:
         return container.create(**kwargs)
     figure_worker = args[0]
@@ -17,7 +17,7 @@ def figure(*args, **kwargs):
 
 def gcf():
     """ Returns the current figure """
-    container = controllers.worker_refs.get('figure')
+    container = refs.worker.get('figure')
     if container.current is None:
         figure()  # make sure we always have a figure
     return container.current
@@ -25,7 +25,7 @@ def gcf():
 
 def gca():
     """ Returns the current axis """
-    container = controllers.worker_refs.get('axis')
+    container = refs.worker.get('axis')
     if container.current is None:
         figure()  # make sure we always have a figure
     return container.current

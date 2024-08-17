@@ -7,7 +7,7 @@ import sys
 from pyqtgraph.Qt import QtWidgets
 from pyqtgraph.Qt import QtCore
 import pyqtgraph as pg
-from pqthreads import controllers
+from pqthreads import refs
 
 
 pg.setConfigOption('background', 'w')
@@ -84,7 +84,7 @@ class FigureWindow(QtCore.QObject):
 
     def add_axis(self, index):
         """ Adds an axis to the figure """
-        axis = controllers.gui_refs.get('axis').items[index]
+        axis = refs.gui.get('axis').items[index]
         self.graphics_layout.addItem(axis)
 
     @property

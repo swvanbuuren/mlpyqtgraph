@@ -2,8 +2,8 @@
 This modules defines all worker thread related classes and instances
 """
 
-from pqthreads import controllers
 from pqthreads import containers
+from pqthreads import refs
 
 
 class AxisWorker(containers.WorkerItem):
@@ -42,7 +42,7 @@ class FigureWorker(containers.WorkerItem):
         """ Adds an axis to the figure worker """
         if self.axis:
             return
-        axis_container = controllers.worker_refs.get('axis')
+        axis_container = refs.worker.get('axis')
         axis = axis_container.create(**kwargs)
         index = axis.index
         self.add_axis(index)
