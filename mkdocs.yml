@@ -1,0 +1,49 @@
+site_name: mlpyqtgraph Documentation
+site_url: https://swvanbuuren.github.io/mlpyqtgraph/
+repo_url: https://github.com/swvanbuuren/mlpyqtgraph
+repo_name: swvanbuuren/mlpyqtgraph
+
+theme:
+  name: material
+  features:
+  - navigation.sections
+  - navigation.tabs
+  - navigation.indexes
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            show_root_toc_entry: false
+
+markdown_extensions:
+  - attr_list
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
+
+
+nav:
+  - Welcome:
+    - index.md
+    - introduction.md
+    - getting_started.md
+    - installation.md
+    - examples.md
+  - Code Reference:
+    - reference/index.md
+    - reference/ml_functions.md
+    - reference/axes.md
+    - reference/windows.md
+    - reference/worker.md
+    - reference/colors.md
+    - reference/config_options.md
