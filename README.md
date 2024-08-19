@@ -11,7 +11,7 @@ mlpyqtgraph is a python package. You can install it just like any other python p
 pip install /path/to/mlpyqtgraph
 ```
 For detailed installation instructions, please refer to [documentation's installation
-page](https://swvanbuuren.github.io/mlpyqtgraph/).
+page](https://swvanbuuren.github.io/mlpyqtgraph/installation/).
 
 ## License
 
