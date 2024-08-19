@@ -1,9 +1,15 @@
 # Installation
 
-mlpyqtgraph is a python package. You can install it just like any other python
-package.
+mlpyqtgraph is a [python package](https://pypi.org/project/mlpyqtgraph/) which
+is available on the [Python Package Index (PyPi)](https://pypi.org/). You can
+install it just like any other python package using `pip`:
 
-First clone the package from GitHub using `git`:
+``` bash
+pip install mlpyqtgraph
+```
+
+Alternatively, you can install mlpyqtgraph directly from source. To do this,
+first clone the package from GitHub using `git`:
 
 ```bash
 git clone https://github.com/swvanbuuren/mlpyqtgraph.git

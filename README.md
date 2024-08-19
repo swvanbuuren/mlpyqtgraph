@@ -5,11 +5,14 @@ mlpyqtgraph enables [matplotlib](https://matplotlib.org/)-like plotting with
 
 ## Installation
 
-mlpyqtgraph is a python package. You can install it just like any other python package, e.g. using `pip`:
+mlpyqtgraph is a [python package](https://pypi.org/project/mlpyqtgraph/) which
+is available on the [Python Package Index (PyPi)](https://pypi.org/). You can
+install it just like any other python package using `pip`:
 
 ``` bash
-pip install /path/to/mlpyqtgraph
+pip install mlpyqtgraph
 ```
+
 For detailed installation instructions, please refer to [documentation's installation
 page](https://swvanbuuren.github.io/mlpyqtgraph/installation/).
 
