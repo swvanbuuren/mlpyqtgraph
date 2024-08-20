@@ -1,11 +1,13 @@
 # Introduction
 
 mlpyqtgraph enables [matplotlib](https://matplotlib.org/)-like plotting with
-|[pyqtgraph](https://github.com/pyqtgraph/pyqtgraph) in existing
+[pyqtgraph](https://github.com/pyqtgraph/pyqtgraph) in existing
 python programs.
 
-It accomplishes this, by offering an interface very similar to |matplotlib|,
-while maintaining key |pyqtgraph| features such as speed and interactivity.
+It accomplishes this, by offering an interface very similar to
+[matplotlib](https://matplotlib.org/), while maintaining key
+[pyqtgraph](https://github.com/pyqtgraph/pyqtgraph) features such as speed and
+interactivity.
 
 mlpyqtgraph diverts the existing python program into a dedicated thread, while
 using the main thread solely for plotting with pyqtgraph. This is a [requirement
