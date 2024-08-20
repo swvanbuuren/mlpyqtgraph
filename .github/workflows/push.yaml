@@ -7,6 +7,8 @@
 # Also checkout https://github.com/angular/angular.js/blob/master/DEVELOPERS.md#type to
 # which types of commit messages are accepted
 
+name: push
+
 on:
   push:
     branches:
