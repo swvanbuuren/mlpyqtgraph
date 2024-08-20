@@ -1,7 +1,7 @@
 # Getting started
 
 To get started using mlpyqtgraph, it first needs to be installed. Refer to
-[installation page](../installation.md) for instructions.
+[installation page](../installation) for instructions.
 
 Now, mlpyqtgraph can be used in existing python programs.
 
