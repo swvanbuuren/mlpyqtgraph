@@ -20,7 +20,17 @@ def main():
     mpg.plot(theta, np.sin(theta + np.pi), style='--', **plot_args)
     mpg.plot(theta, np.cos(theta + np.pi), style='.-', **plot_args)
     mpg.plot(theta, 0.5*np.cos(theta), color='k', **plot_args)
-    mpg.gca().grid = True
+    axis = mpg.gca()
+    axis.grid = True
+    axis.xlabel = 'x'
+    axis.ylabel = 'y'
+    axis.xticks = ((0.0, '0'),
+                   (np.pi/2.0, 'π/2'),
+                   (np.pi, 'π'),
+                   (1.5*np.pi, '3π/2'),
+                   (2.0*np.pi, '2π'),)
+    axis.add_legend('y=cos(x)', 'y=sin(x)', 'y=sin(x+π)', 'y=cos(x+π)', 'y=cos(x)/2')
+
 
 if __name__ == '__main__':
     main()
