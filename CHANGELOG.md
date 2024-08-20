@@ -1,5 +1,19 @@
 # CHANGELOG
 
+## v0.2.0 (2024-08-20)
+
+### Documentation
+
+* docs: Include PyPi package in installation instructions
+
+Signed-off-by: Sietze van Buuren &lt;s.van.buuren@gmail.com&gt; ([`f514ec1`](https://github.com/swvanbuuren/mlpyqtgraph/commit/f514ec179daa10414a077025876382ab2d03e335))
+
+### Feature
+
+* feat: Add more festures to full 2D plot example
+
+Signed-off-by: Sietze van Buuren &lt;s.van.buuren@gmail.com&gt; ([`55c54f4`](https://github.com/swvanbuuren/mlpyqtgraph/commit/55c54f410f34eaf369357edeeb3758301e22efdc))
+
 ## v0.1.0 (2024-08-19)
 
 ### Chore
