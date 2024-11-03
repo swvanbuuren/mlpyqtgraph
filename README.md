@@ -3,23 +3,43 @@
 mlpyqtgraph enables [matplotlib](https://matplotlib.org/)-like plotting with
 [pyqtgraph](https://github.com/pyqtgraph/pyqtgraph) in existing python programs.
 
-## Installation
+Checkout the [documentation's
+introduction](https://swvanbuuren.github.io/mlpyqtgraph/introduction/) for more
+background information.
 
-mlpyqtgraph is a [python package](https://pypi.org/project/mlpyqtgraph/) which
-is available on the [Python Package Index (PyPi)](https://pypi.org/). You can
-install it just like any other python package using `pip`:
+## Getting started
+
+### Installation
+
+First, install mlpyqtgraph like any other python package using `pip`:
 
 ``` bash
 pip install mlpyqtgraph
 ```
 
-For detailed installation instructions, please refer to [documentation's installation
-page](https://swvanbuuren.github.io/mlpyqtgraph/installation/).
+Detailed installation instructions are found in the
+[documentation](https://swvanbuuren.github.io/mlpyqtgraph/installation/).
 
-## License
+### Usage
 
-An MIT style license applies for mlpyqtgraph, see the [LICENSE](LICENSE) file for more
-details.
+To use mlpyqtgraph, decorate your main function with mlpyqtgraph's `plotter`
+decorator. This diverts the existing python program into a dedicated thread,
+while using the main thread solely for plotting with pyqtgraph.
+
+Now you can use mlpyqtgraph's plot functionalities inside your decorated
+function. A python program that shows a very basic plot could look like this:
+
+```python
+import mlpyqtgraph as mpg
+
+@mpg.plotter
+def main():
+    """ Minimal mlpyqtgraph example """
+    mpg.plot(range(5), (1, 3, 2, 0, 5))
+
+if __name__ == '__main__':
+    main()
+```
 
 ## Examples
 
@@ -29,3 +49,8 @@ Please refer to the [examples](/examples) for a few applications of mlpyqtgraph.
 
 Check out the [documentation](https://swvanbuuren.github.io/mlpyqtgraph/)!
 Please note that it's currently still under construction.
+
+## License
+
+An MIT style license applies for mlpyqtgraph, see the [LICENSE](LICENSE) file
+for more details.
