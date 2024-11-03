@@ -1,6 +1,4 @@
-"""
-mlpyqtgraph axes module, with 2D and 3D Axis classes
-"""
+""" mlpyqtgraph axes module, with 2D and 3D Axis classes """
 
 
 import math
@@ -13,6 +11,8 @@ import numpy as np
 
 import mlpyqtgraph.config_options as config
 from mlpyqtgraph import colors
+from mlpyqtgraph.grid_axes import GLGridAxis
+from mlpyqtgraph.utils.ticklabels import coord_generator, limit_generator
 
 
 class RootException(Exception):
@@ -133,7 +133,7 @@ class Axis2D(pg.PlotItem):
         self.plot(x_coord, y_coord,
                   pen=line_pen, symbol=symbol, symbolSize=symbol_size,
                   symbolPen=symbol_pen, symbolBrush=symbol_color)
-        
+
     @property
     def grid(self):
         """ Returns grid activation state """
@@ -272,7 +272,7 @@ class Axis2D(pg.PlotItem):
         """ Closes the axis """
 
 
-class Axis3D(gl.GLViewWidget):
+class Axis3D(gl.GLGraphicsItem.GLGraphicsItem):
     """ 3D axis """
     axis_type = '3D'
 
@@ -311,40 +311,16 @@ class Axis3D(gl.GLViewWidget):
         'glOptions': glOption_lines,
     }
 
-    def __init__(self, index, parent=None, **kwargs):
-        super().__init__(parent=parent, **kwargs)
+    def __init__(self, index, parentItem=None, **kwargs):
+        super().__init__(parentItem=parentItem, **kwargs)
         self.index = index
-        self.setup()
+        self.grid_axes = GLGridAxis(parentItem=self)
+        #self.view().setCameraPosition(**self.grid_axes.best_camera())
 
-    def setup(self):
-        """ Sets up the 3D iew widget """
-        self.setCameraPosition(distance=40)
-
-        rotations = (
-            (90, 0, 1, 0),
-            (90, 1, 0, 0),
-            ( 0, 0, 0, 0),
-        )
-        translations = (
-            (-10,   0,   0),
-            (  0, -10,   0),
-            (  0,   0, -10)
-        )
-
-        for rot, trans in zip(rotations, translations):
-            grid = gl.GLGridItem()
-            grid.setColor(0.0)
-            grid.rotate(*rot)
-            grid.translate(*trans)
-            grid.setDepthValue(10)  # draw grid after surfaces since they may be translucent
-            self.addItem(grid)
-
-        #grid = gl.GLGridItem()
-        #grid.setColor('k')
-        #grid.scale(1, 1, 1)
-        #grid.setSize(x=1)
-        #grid.setDepthValue(10)  # draw grid after surfaces since they may be translucent
-        #self.addItem(grid)
+    def _setView(self, v):
+        super()._setView(v)
+        for child in self.childItems():
+            child._setView(v)
 
     @staticmethod
     def set_colormap(surface, colormap='CET-L10'):
@@ -356,22 +332,35 @@ class Axis3D(gl.GLViewWidget):
 
     def set_projection_method(self, *coords, method='orthographic'):
         """ Sets the projection method, either perspective or orthographic """
-        #object_size = math.sqrt(sum([coord.ptp()**2.0 for coord in coords]))
         object_size = (sum([np.ptp(coord)**3.0 for coord in coords]))**(1.0/3.0)
         field_of_view = 60
         if method == 'orthographic':
             field_of_view = 1
         distance = 0.75*object_size/math.tan(0.5*field_of_view/180.0*math.pi)
-        self.setCameraParams(fov=field_of_view, distance=distance)
+        self.view().setCameraParams(fov=field_of_view, distance=distance)
 
     def add(self, *args, **kwargs):
         """ Adds a 3D surface plot item to the view widget  """
         kwargs = dict(self.default_surface_options, **kwargs)
         surface = gl.GLSurfacePlotItem(*args, **kwargs)
+        self.view().addItem(surface)
         self.set_colormap(surface, colormap=kwargs['colormap'])
         self.set_projection_method(*args, method=kwargs['projection'])
-        self.addItem(surface)
         self.add_grid_lines(*args)
+        self.update_grid_axes(*args, **kwargs)
+
+    def calculate_ax_coord_lims(self, x, y, z):
+        """ Calculates the axis coordinates limits """
+        coords = dict(coord_generator(num_ticks=6, x=x, y=y, z=z))
+        limits = dict(limit_generator(limit_ratio=0.05, **coords))
+        return coords, limits
+
+    def update_grid_axes(self, *args, **kwargs):
+        """ Plots the grid axes """
+        coords, limits = self.calculate_ax_coord_lims(*args)
+        self.grid_axes.setData(coords=coords, limits=limits)
+        projection_method = kwargs.get('projection', 'perspective')
+        self.view().setCameraPosition(**self.grid_axes.best_camera(method=projection_method))
 
     def add_grid_lines(self, *args):
         """ Plots all grid lines """
@@ -385,7 +374,8 @@ class Axis3D(gl.GLViewWidget):
     def add_single_grid_line(self, x, y, z):
         """ Plots a single grid line for given coordinates """
         points = np.column_stack((x, y, z))
-        self.addItem(gl.GLLinePlotItem(pos=points, **self.default_line_options))
+        line = gl.GLLinePlotItem(pos=points, **self.default_line_options)
+        self.view().addItem(line)
 
     def delete(self):
         """ Closes the axis """

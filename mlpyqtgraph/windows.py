@@ -27,37 +27,17 @@ class NoFigureLayout(RootException):
     """ This Exception is raised the figure layout has not been set """
 
 
-class GridLayoutWidget(QtWidgets.QWidget):
-    """ Custom layout widget with GridLayout to mimic pyqtgraph's layout widget """
-    def __init__(self, parent=None):
-        super().__init__(parent=parent)
-        self.setLayout(QtWidgets.QGridLayout())
-        self.layout().setContentsMargins(0, 0, 0, 0)
-
-    def getItem(self, row, column):
-        """ Returns the item at row, col. If empty return None """
-        return self.layout().itemAtPosition(row, column)
-
-    def addItem(self, item, row=0, column=0, rowSpan=1, columnSpan=1):
-        """ Adds an item at row, col with rowSpand and colSpan """
-        self.layout().addWidget(item, row, column, rowSpan, columnSpan)
-
-    def removeItem(self, item):
-        """ Removes an item from the layout """
-        self.layout().removeItem(item)
-
-
 class FigureWindow(QtCore.QObject):
     """ Controls a figure window instance """
     triggered = QtCore.Signal()
     axis_factory = None
 
-    def __init__(self, index, title='Figure', width=600, height=500, parent=None):
+    def __init__(self, index, title='Figure', width=600, height=500, layout_type='pg', parent=None):
         super().__init__(parent=parent)
         self.index = index
-        self.layout_type = 'None'
+        self.layout_type = None
         self.window = self.setup_window(parent, width, height)
-        self.change_layout()
+        self.change_layout(layout_type)
         self.title = f'Figure {index+1}: {title}'
         self.window.show()
 
@@ -69,16 +49,17 @@ class FigureWindow(QtCore.QObject):
 
     def change_layout(self, layout_type='pg'):
         """
-        Change the figure's layout type; pg for pyqtgraph's native layout or Qt layout
+        Change the figure's layout type; 'pg' for pyqtgraph's native layout or 'Qt'
+        layout.
 
         Returns: boolean indicating layout change
         """
-        LayoutWidget = pg.GraphicsLayoutWidget
         if self.layout_type == layout_type:
             return False
         self.layout_type = layout_type
-        if self.layout_type == 'Qt':
-            LayoutWidget = GridLayoutWidget
+        LayoutWidget = pg.GraphicsLayoutWidget
+        if layout_type == 'Qt':
+            LayoutWidget = pg.opengl.GLViewWidget
         self.window.setCentralWidget(LayoutWidget())
         return True
 

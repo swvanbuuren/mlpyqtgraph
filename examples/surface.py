@@ -22,10 +22,10 @@ def main():
         d = np.hypot(x, yi)
         z[:,i] = amplitude * np.cos(frequency*d) / (d+1)
 
-    mpg.figure(title='Perspective surface plot')
+    mpg.figure(title='Perspective surface plot', layout_type='Qt')
     mpg.surf(x, y, z, colormap='viridis', projection='perspective')
 
-    mpg.figure(title='Orthographic surface plot')
+    mpg.figure(title='Orthographic surface plot', layout_type='Qt')
     mpg.surf(x, y, z, colormap='viridis', projection='orthographic')
 
 
