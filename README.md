@@ -2,6 +2,7 @@
 
 mlpyqtgraph enables [matplotlib](https://matplotlib.org/)-like plotting with
 [pyqtgraph](https://github.com/pyqtgraph/pyqtgraph) in existing python programs.
+It relies on [pqthreads](https://github.com/swvanbuuren/pqthreads) to separate mlpyqtgraph's plotting functionality from the existing python program, by separating them in different `Qthread`s.
 
 Checkout the [documentation's
 introduction](https://swvanbuuren.github.io/mlpyqtgraph/introduction/) for more
