@@ -1,0 +1,23 @@
+# CHANGELOG
+
+{%    for version, release in ctx.history.released.items()
+%}{{
+        "## %s (%s)" | format(version.as_tag(), release.tagged_date.strftime("%Y-%m-%d"))
+
+}}{%    for type_, commits in release["elements"] if type_ != "unknown" | dictsort
+%}{{
+          "### %s" | format(type_ | title)
+
+}}{%      for commit in commits
+%}{{
+          "\n* %s by %s ([`%s`](%s))\n" | format(
+              commit.descriptions[0].rstrip(),
+              commit.author.name,
+              commit.short_hash,
+              commit.hexsha | commit_hash_url,
+          )
+
+}}{%      endfor
+%}{%    endfor
+%}{%  endfor
+%}
