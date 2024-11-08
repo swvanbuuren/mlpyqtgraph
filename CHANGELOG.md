@@ -1,5 +1,28 @@
 # CHANGELOG
 
+## v0.3.1 (2024-11-08)
+
+### Bug Fixes
+
+* Change signal/slot timeout to 10 seconds ([`375f9d0`](https://github.com/swvanbuuren/mlpyqtgraph/commit/375f9d0e71b238924d6fa7e7b1e2594b67875dfc))
+
+### Chores
+
+* change template location for semantic release ([`9d320c1`](https://github.com/swvanbuuren/mlpyqtgraph/commit/9d320c1b0ca7acfd4c39433137fef6063e7ea89a))
+
+* update templates for genearing the changelog and release notes ([`cad4364`](https://github.com/swvanbuuren/mlpyqtgraph/commit/cad43649c37355ed84e7f0c37e9071e7d9d3e06a))
+
+* add custom templates for changelog and release notes ([`ffe32c8`](https://github.com/swvanbuuren/mlpyqtgraph/commit/ffe32c8d704d719480de011d996922f0ebae07de))
+
+* Ignore venv and uv artifacts ([`724674e`](https://github.com/swvanbuuren/mlpyqtgraph/commit/724674e9d36c43af1a84889355442cdf4a366c2b))
+
+### Documentation
+
+* Mention usage of pqthreads in documentation and README ([`d276c68`](https://github.com/swvanbuuren/mlpyqtgraph/commit/d276c689311fdcc53cd2fca286f556753f723352))
+
+* Add introduction link and getting started to README ([`6f40d91`](https://github.com/swvanbuuren/mlpyqtgraph/commit/6f40d91bb356f7aac637e5d627c9ad574a82635e))
+
+* Add copy button to code blocks ([`c99063c`](https://github.com/swvanbuuren/mlpyqtgraph/commit/c99063c1101721043051ccc1c1e88f0fb95df669))
 ## v0.3.0 (2024-11-03)
 
 ### Chores
