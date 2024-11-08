@@ -13,7 +13,7 @@
 }}{%      for commit in commits
 %}{{
           "\n* %s ([`%s`](%s))\n" | format(
-              commit.descriptions[0].rstrip(),
+              commit.descriptions[0].rstrip() | capitalize,
               commit.short_hash,
               commit.hexsha | commit_hash_url
           )
