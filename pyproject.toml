@@ -24,7 +24,7 @@ classifiers = [
 urls = { Homepage = "https://github.com/swvanbuuren/mlpyqtgraph" }
 dependencies = [
     "pyqtgraph",
-    "pqthreads",
+    "pqthreads==0.4.1",
     "pyopengl",
 ]
 
