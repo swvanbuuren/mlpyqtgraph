@@ -17,9 +17,8 @@
 
 }}{%    for commit in commits
 %}{{
-          "\n* %s by %s ([`%s`](%s))\n" | format(
+          "\n* %s ([`%s`](%s))\n" | format(
               commit.descriptions[0].rstrip(),
-              commit.author.name,
               commit.short_hash,
               commit.hexsha | commit_hash_url,
           )
