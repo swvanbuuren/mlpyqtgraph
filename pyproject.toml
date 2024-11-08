@@ -36,4 +36,4 @@ version_variables = ["mlpyqtgraph/__init__.py:__version__"]
 version_toml = ["pyproject.toml:project.version"]
 
 [tool.semantic_release.changelog]
-template_dir = "templates"
+template_dir = ".github/templates"
