@@ -308,6 +308,10 @@ class Axis3D(gl.GLGraphicsItem.GLGraphicsItem):
         'color': (0, 0, 0, 1),
         'antialias': True,
         'width': 1,
+    }
+
+    grid_line_options = {
+        **default_line_options,
         'glOptions': glOption_lines,
     }
 
@@ -339,7 +343,7 @@ class Axis3D(gl.GLGraphicsItem.GLGraphicsItem):
         distance = 0.75*object_size/math.tan(0.5*field_of_view/180.0*math.pi)
         self.view().setCameraParams(fov=field_of_view, distance=distance)
 
-    def add(self, *args, **kwargs):
+    def surf(self, *args, **kwargs):
         """ Adds a 3D surface plot item to the view widget  """
         kwargs = dict(self.default_surface_options, **kwargs)
         surface = gl.GLSurfacePlotItem(*args, **kwargs)
@@ -351,7 +355,7 @@ class Axis3D(gl.GLGraphicsItem.GLGraphicsItem):
 
     def calculate_ax_coord_lims(self, x, y, z):
         """ Calculates the axis coordinates limits """
-        coords = dict(coord_generator(num_ticks=6, x=x, y=y, z=z))
+        coords = dict(coord_generator(x=x, y=y, z=z))
         limits = dict(limit_generator(limit_ratio=0.05, **coords))
         return coords, limits
 
@@ -359,23 +363,39 @@ class Axis3D(gl.GLGraphicsItem.GLGraphicsItem):
         """ Plots the grid axes """
         coords, limits = self.calculate_ax_coord_lims(*args)
         self.grid_axes.setData(coords=coords, limits=limits)
-        projection_method = kwargs.get('projection', 'perspective')
-        self.view().setCameraPosition(**self.grid_axes.best_camera(method=projection_method))
+        projection = kwargs.get('projection', 'perspective')
+        print(projection)
+        self.view().setCameraPosition(**self.grid_axes.best_camera(method=projection))
 
     def add_grid_lines(self, *args):
         """ Plots all grid lines """
         x, y, z = args[:3]
         rows, columns = z.shape
         for row in range(rows):
-            self.add_single_grid_line(x[row]*np.ones(columns), y, z[row])
+            self.add_line(
+                x[row]*np.ones(columns), y, z[row],
+                **self.grid_line_options
+            )
         for col in range(columns):
-            self.add_single_grid_line(x, y[col]*np.ones(rows), z[:, col])
+            self.add_line(
+                x, y[col]*np.ones(rows), z[:, col],
+                **self.grid_line_options
+            )
 
-    def add_single_grid_line(self, x, y, z):
+    def add_line(self, *args, **kwargs):
         """ Plots a single grid line for given coordinates """
-        points = np.column_stack((x, y, z))
-        line = gl.GLLinePlotItem(pos=points, **self.default_line_options)
+        points = np.column_stack(args)
+        line = gl.GLLinePlotItem(pos=points, **kwargs)
         self.view().addItem(line)
+
+    def line(self, *args, **kwargs):
+        """ Plots a single grid line for given coordinates """
+        kwargs = dict(self.default_line_options, **kwargs)
+        lines_kwargs = dict(kwargs)
+        lines_kwargs.pop('projection')
+        self.add_line(*args, **lines_kwargs)
+        self.set_projection_method(*args, method=kwargs['projection'])
+        self.update_grid_axes(*args, **kwargs)
 
     def delete(self):
         """ Closes the axis """
