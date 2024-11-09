@@ -1,5 +1,20 @@
 # CHANGELOG
 
+## v0.4.0 (2024-11-09)
+
+### Chores
+
+* Update python semantic release version and naming ([`fb72583`](https://github.com/swvanbuuren/mlpyqtgraph/commit/fb72583459761ee413289f1e077277d7a11383b2))
+
+* Make sure commit subjects start with a capital ([`5cc9249`](https://github.com/swvanbuuren/mlpyqtgraph/commit/5cc92491cff83d8a3302984f89071343c9bd7e5e))
+
+### Code Style
+
+* Improve readability of full plot example ([`7ff201a`](https://github.com/swvanbuuren/mlpyqtgraph/commit/7ff201ac631d4185a69b7ec144a09eb0f7672495))
+
+### Features
+
+* Add arctan2 example ([`513589a`](https://github.com/swvanbuuren/mlpyqtgraph/commit/513589a75ff32b44df9c36d5cb9e57f2ae64aeef))
 ## v0.3.1 (2024-11-08)
 
 ### Bug Fixes
