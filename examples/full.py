@@ -24,12 +24,20 @@ def main():
     axis.grid = True
     axis.xlabel = 'x'
     axis.ylabel = 'y'
-    axis.xticks = ((0.0, '0'),
-                   (np.pi/2.0, 'π/2'),
-                   (np.pi, 'π'),
-                   (1.5*np.pi, '3π/2'),
-                   (2.0*np.pi, '2π'),)
-    axis.add_legend('y=cos(x)', 'y=sin(x)', 'y=sin(x+π)', 'y=cos(x+π)', 'y=cos(x)/2')
+    axis.xticks = (
+        (0.0, '0'),
+        (np.pi/2.0, 'π/2'),
+        (np.pi, 'π'),
+        (1.5*np.pi, '3π/2'),
+        (2.0*np.pi, '2π'),
+    )
+    axis.add_legend(
+        'y=cos(x)',
+        'y=sin(x)',
+        'y=sin(x+π)',
+        'y=cos(x+π)',
+        'y=cos(x)/2',
+    )
 
 
 if __name__ == '__main__':
