@@ -51,4 +51,10 @@ def surf(*args, **kwargs):
     """ Plots a 3D surface """
     gcf().change_layout('Qt')
     gcf().create_axis(axis_type='3D')
-    gca().add(*args, **kwargs)
+    gca().surf(*args, **kwargs)
+
+def plot3(*args, **kwargs):
+    """ Plots a 3D line """
+    gcf().change_layout('Qt')
+    gcf().create_axis(axis_type='3D')
+    gca().line(*args, **kwargs)
