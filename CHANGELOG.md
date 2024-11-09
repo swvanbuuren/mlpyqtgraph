@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## v0.5.0 (2024-11-09)
+
+### Features
+
+* Add plot3 functionality including example ([`4fa0510`](https://github.com/swvanbuuren/mlpyqtgraph/commit/4fa0510e8b3f4362333fda9c7c3b7b64ef8ab7af))
 ## v0.4.0 (2024-11-09)
 
 ### Chores
