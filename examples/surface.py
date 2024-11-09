@@ -25,9 +25,6 @@ def main():
     mpg.figure(title='Perspective surface plot', layout_type='Qt')
     mpg.surf(x, y, z, colormap='viridis', projection='perspective')
 
-    mpg.figure(title='Orthographic surface plot', layout_type='Qt')
-    mpg.surf(x, y, z, colormap='viridis', projection='orthographic')
-
 
 if __name__ == '__main__':
     main()
