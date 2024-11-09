@@ -21,7 +21,8 @@ def main():
 
     mpg.figure(title='arctan2(x, y)', layout_type='Qt')
     mpg.surf(x, y, z, colormap='viridis', projection='orthographic')
-
+    ax = mpg.gca()
+    ax.azimuth = 315
 
 if __name__ == '__main__':
     main()
