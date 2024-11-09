@@ -1,5 +1,16 @@
 # CHANGELOG
 
+## v0.6.0 (2024-11-09)
+
+### Features
+
+* Add azimuth and elevation properties for 3d axis ([`13f2631`](https://github.com/swvanbuuren/mlpyqtgraph/commit/13f263142ea342af6bba738ba764b916e8c4cfef))
+
+### Refactoring
+
+* Remove orthographic plot of surface example ([`121b890`](https://github.com/swvanbuuren/mlpyqtgraph/commit/121b8902a6204113e134ff127efcd52881dbe7d2))
+
+* Change view angle of arctan2 example ([`9e53c24`](https://github.com/swvanbuuren/mlpyqtgraph/commit/9e53c24787455a8a4056ab1401d03438bce1b61e))
 ## v0.5.0 (2024-11-09)
 
 ### Features
