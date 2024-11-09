@@ -23,6 +23,8 @@ class AxisWorker(containers.WorkerItem):
     yticks = factory.attribute()
     set_xticks = factory.method()
     set_yticks = factory.method()
+    azimuth = factory.attribute()
+    elevation = factory.attribute()
 
 
 class FigureWorker(containers.WorkerItem):

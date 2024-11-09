@@ -397,6 +397,22 @@ class Axis3D(gl.GLGraphicsItem.GLGraphicsItem):
         self.set_projection_method(*args, method=kwargs['projection'])
         self.update_grid_axes(*args, **kwargs)
 
+    @property
+    def azimuth(self):
+        return self.view().cameraParams()['azimuth']
+
+    @azimuth.setter
+    def azimuth(self, value):
+        self.view().setCameraParams(azimuth=value)
+
+    @property
+    def elevation(self):
+        return self.view().cameraParams()['elevation']
+
+    @elevation.setter
+    def elevation(self, value):
+        self.view().setCameraParams(elevation=value)
+
     def delete(self):
         """ Closes the axis """
 
