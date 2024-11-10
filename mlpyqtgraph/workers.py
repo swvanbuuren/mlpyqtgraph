@@ -11,6 +11,7 @@ class AxisWorker(containers.WorkerItem):
     factory = containers.WorkerItem.get_factory()
     row = factory.attribute()
     column = factory.attribute()
+    add = factory.method()
     surf = factory.method()
     line = factory.method()
     add_legend = factory.method()
