@@ -28,4 +28,23 @@ pip install /path/to/mlpyqtgraph
 ```
 
 Now, mpyqtgraph can be used whenever the appropriate virtual environment has
-been activated.
+been activated e.g., by trying the [minimal example](https://github.com/swvanbuuren/mlpyqtgraph/blob/master/examples/minimal.py):
+
+```bash
+python examples/minimal.py
+```
+
+!!! info
+
+    If you receive an error message similar to the following:
+
+    ```plaintext
+    Could not load the Qt platform plugin "xcb" in "" even though it was found."
+    ```
+
+    Then, you might need to install additional dependencies. On a Debian-based 
+    system, this is accomplished with:
+
+    ```bash
+    sudo apt install -y libxcb-cursor-dev
+    ```
