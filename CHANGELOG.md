@@ -1,5 +1,18 @@
 # CHANGELOG
 
+## v0.6.1 (2024-11-10)
+
+### Bug Fixes
+
+* Add missing required method for 2d plotting ([`f5d2d4e`](https://github.com/swvanbuuren/mlpyqtgraph/commit/f5d2d4e4b49a1598cfff77e2c1b9f5a180d9884f))
+
+### Documentation
+
+* Add info and resolution for missing xcb plugin error ([`0ddb6a1`](https://github.com/swvanbuuren/mlpyqtgraph/commit/0ddb6a1224988e669c3a075de713adb32f22f6c9))
+
+### Testing
+
+* Setup basic testing ([`fe61dad`](https://github.com/swvanbuuren/mlpyqtgraph/commit/fe61dadd0059a5dafc652f28a0f0574c404ebdfe))
 ## v0.6.0 (2024-11-09)
 
 ### Features

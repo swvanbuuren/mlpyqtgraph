@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "mlpyqtgraph"
-version = "0.6.0"
+version = "0.6.1"
 description = "Matplotlib like plotting with pyqtgraph in python"
 readme = "README.md"
 license = { file = "LICENSE" }
