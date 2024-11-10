@@ -28,6 +28,12 @@ dependencies = [
     "pyopengl",
 ]
 
+[dependency-groups]
+dev = [
+  "pylint",
+  "pytest",
+]
+
 [tool.setuptools.packages.find]
 include = ["mlpyqtgraph", "mlpyqtgraph.*"]
 
