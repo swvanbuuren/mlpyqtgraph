@@ -364,7 +364,6 @@ class Axis3D(gl.GLGraphicsItem.GLGraphicsItem):
         coords, limits = self.calculate_ax_coord_lims(*args)
         self.grid_axes.setData(coords=coords, limits=limits)
         projection = kwargs.get('projection', 'perspective')
-        print(projection)
         self.view().setCameraPosition(**self.grid_axes.best_camera(method=projection))
 
     def add_grid_lines(self, *args):
