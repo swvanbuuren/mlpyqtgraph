@@ -54,7 +54,7 @@ def euler(dxdt, x0, dt=0.005, num_steps=10_000):
     return x.T
 
 
-@mpg.plotter(antialiasing=True)
+@mpg.plotter
 def main():
     """ Plot Lorenz attractor """
     x, y, z = euler(dxdt=lorenz, x0=(0., 1., 1.05))

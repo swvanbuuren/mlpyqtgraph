@@ -6,7 +6,7 @@ import numpy as np
 import mlpyqtgraph as mpg
 
 
-@mpg.plotter(antialiasing=True)
+@mpg.plotter
 def main():
     """ Examples with surface plots """
     extent = 10
@@ -23,7 +23,7 @@ def main():
         z[:,i] = amplitude * np.cos(frequency*d) / (d+1)
 
     mpg.figure(title='Perspective surface plot', layout_type='Qt')
-    mpg.surf(x, y, z, colormap='viridis', projection='perspective')
+    mpg.surf(x, y, z)
 
 
 if __name__ == '__main__':
