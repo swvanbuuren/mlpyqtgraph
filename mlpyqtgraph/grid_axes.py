@@ -9,11 +9,6 @@ from mlpyqtgraph.utils.GLTextItem import GLTextItem
 from collections import namedtuple
 
 
-pg.setConfigOption('background', 'w')
-pg.setConfigOption('foreground', 'k')
-pg.setConfigOptions(antialias=True)
-
-
 class GLGridAxisBase(GLGraphicsItem.GLGraphicsItem):
     """ Base class for OpenGL classes """
 
