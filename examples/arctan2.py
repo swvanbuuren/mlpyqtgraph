@@ -6,7 +6,7 @@ import numpy as np
 import mlpyqtgraph as mpg
 
 
-@mpg.plotter(antialiasing=True)
+@mpg.plotter
 def main():
     """ Examples with surface plots """
     extent = 4
@@ -20,7 +20,7 @@ def main():
         z[i, :] = amplitude * np.arctan2(x, y[i])
 
     mpg.figure(title='arctan2(x, y)', layout_type='Qt')
-    mpg.surf(x, y, z, colormap='viridis', projection='orthographic')
+    mpg.surf(x, y, z, projection='orthographic')
     ax = mpg.gca()
     ax.azimuth = 315
 
