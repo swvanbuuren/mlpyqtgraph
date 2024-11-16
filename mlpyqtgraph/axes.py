@@ -25,7 +25,6 @@ class InvalidAxis(RootException):
 
 class Axis2D(pg.PlotItem):
     """ Axis for plots in a given figure layout """
-    axis_type = '2D'
     pen_styles = {'-': QtCore.Qt.SolidLine,
                   '--': QtCore.Qt.DashLine,
                   ':': QtCore.Qt.DotLine,
@@ -274,9 +273,8 @@ class Axis2D(pg.PlotItem):
 
 class Axis3D(gl.GLGraphicsItem.GLGraphicsItem):
     """ 3D axis """
-    axis_type = '3D'
 
-    glOption = {
+    gl_options = {
         ogl.GL_DEPTH_TEST: True,
         ogl.GL_BLEND: True,
         ogl.GL_ALPHA_TEST: False,
@@ -286,39 +284,36 @@ class Axis3D(gl.GLGraphicsItem.GLGraphicsItem):
         'glBlendFunc': (ogl.GL_SRC_ALPHA, ogl.GL_ONE_MINUS_SRC_ALPHA),
     }
 
-    glOption_surface = {
-        **glOption,
+    gl_surface_options = {
+        **gl_options,
         ogl.GL_POLYGON_OFFSET_FILL: True,
         'glPolygonOffset': (1.0, 1.0 ),
     }
 
-    glOption_lines = {
-        **glOption,
+    gl_line_options = {
+        **gl_options,
         ogl.GL_POLYGON_OFFSET_FILL: False,
-    }
-
-    default_surface_options = {
-        'glOptions': glOption_surface,
-        'colormap': 'viridis',
-        'smooth': True,
-        'projection': 'perspective',
-    }
-
-    default_line_options = {
-        'color': (0, 0, 0, 1),
-        'antialias': True,
-        'width': 1,
-    }
-
-    grid_line_options = {
-        **default_line_options,
-        'glOptions': glOption_lines,
     }
 
     def __init__(self, index, parentItem=None, **kwargs):
         super().__init__(parentItem=parentItem, **kwargs)
         self.index = index
         self.grid_axes = GLGridAxis(parentItem=self)
+        self.default_surface_options = {
+            'glOptions': self.gl_surface_options,
+            'colormap': options.get_option('colormap'),
+            'smooth': True,
+            'projection': options.get_option('projection'),
+        }
+        self.default_line_options = {
+            'color': (0, 0, 0, 1),
+            'antialias': options.get_option('antialiasing'),
+            'width': 1,
+        }
+        self.grid_line_options = {
+            **self.default_line_options,
+            'glOptions': self.gl_line_options,
+        }
 
     def _setView(self, v):
         super()._setView(v)
