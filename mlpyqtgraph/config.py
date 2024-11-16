@@ -13,6 +13,8 @@ class ConfigOptions:
     """
     config_options = {
         'line_color_profile': 'matlab',
+        'colormap': 'viridis',
+        'projection': 'perspective',
         'antialiasing': True,
         'segmentedLineMode': 'off',
         'no_segmented_line_mode': False,

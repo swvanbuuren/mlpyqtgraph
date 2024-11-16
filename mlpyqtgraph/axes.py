@@ -9,7 +9,7 @@ import pyqtgraph.functions as fn
 import OpenGL.GL as ogl
 import numpy as np
 
-import mlpyqtgraph.config_options as config
+from mlpyqtgraph.config import options
 from mlpyqtgraph import colors
 from mlpyqtgraph.grid_axes import GLGridAxis
 from mlpyqtgraph.utils.ticklabels import coord_generator, limit_generator
@@ -113,7 +113,7 @@ class Axis2D(pg.PlotItem):
         """
         color = kwargs.get('color', self.default_line_color())
         width = kwargs.get('width', 2.0)
-        if config.options.get_option('no_segmented_line_mode'):
+        if options.get_option('no_segmented_line_mode'):
             color = self.fix_line_artifacts(width, color)
         style = kwargs.get('style', '-')
         symbol = kwargs.get('symbol')
@@ -319,7 +319,6 @@ class Axis3D(gl.GLGraphicsItem.GLGraphicsItem):
         super().__init__(parentItem=parentItem, **kwargs)
         self.index = index
         self.grid_axes = GLGridAxis(parentItem=self)
-        #self.view().setCameraPosition(**self.grid_axes.best_camera())
 
     def _setView(self, v):
         super()._setView(v)

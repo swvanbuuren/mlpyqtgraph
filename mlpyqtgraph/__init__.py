@@ -8,7 +8,7 @@ from pqthreads import decorator
 from mlpyqtgraph import windows
 from mlpyqtgraph import axes
 from mlpyqtgraph import workers
-from mlpyqtgraph import config_options as config
+from mlpyqtgraph import config
 
 from . import ml_functions
 from .ml_functions import *

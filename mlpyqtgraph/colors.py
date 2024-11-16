@@ -3,7 +3,7 @@ The colors module defines classes to define colors
 
 """
 
-import mlpyqtgraph.config_options as config
+from mlpyqtgraph.config import options
 
 
 class ColorDefinitions:
@@ -39,7 +39,7 @@ class ColorDefinitions:
 
     def get_line_colors(self):
         """ Returns list of line colors"""
-        color_profile = config.options.get_option('line_color_profile')
+        color_profile = options.get_option('line_color_profile')
         return self.line_colors.get(color_profile, 'matlab')
 
     def get_scale_box_colors(self, part='line'):
