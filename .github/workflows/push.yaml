@@ -15,10 +15,14 @@ on:
       - master
 
 jobs:
+  test-and-lint:
+    uses: ./.github/workflows/test-and-lint.yaml
+
   release:
     name: Semantic Release
     runs-on: ubuntu-latest
     concurrency: push
+    needs: [test-and-lint]
     if: github.repository == 'swvanbuuren/mlpyqtgraph'
     environment:
       name: pypi
