@@ -1,0 +1,12 @@
+# Workflow for pull requests to master branch
+
+name: Pull Request workflow
+
+on:
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  lint-and-test:
+    uses: ./.github/workflows/test-and-lint.yaml
