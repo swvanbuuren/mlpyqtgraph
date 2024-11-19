@@ -11,7 +11,7 @@ jobs:
     name: Lint and test
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/swvanbuuren/qt-python-docker:nightly
+      image: ghcr.io/swvanbuuren/qt-python-docker:master
     strategy:
       fail-fast: false
       matrix:
