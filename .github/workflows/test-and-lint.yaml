@@ -20,6 +20,10 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
 
+    - name: Set environment variables
+      run: |
+        echo "UV_SYSTEM_PYTHON=true" >> $GITHUB_ENV
+
     # used docker image already has uv    
     # - name: Install uv
     #   uses: astral-sh/setup-uv@v3
@@ -32,9 +36,6 @@ jobs:
     - name: Install the project
       run: |
         uv sync
-        # get the directory to the site packages in .venv
-        PYTHON_SITE_PACKAGES=$(find .venv/lib -type d -name "python3.*" -exec echo {}/site-packages \;)
-        export LD_LIBRARY_PATH="${PYTHON_SITE_PACKAGES}:$LD_LIBRARY_PATH"
 
     # Commented out because linter rules violations are not fixed yet
     # - name: Lint with ruff
