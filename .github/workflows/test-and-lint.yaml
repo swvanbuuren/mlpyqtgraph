@@ -34,8 +34,7 @@ jobs:
         python-version: ${{ matrix.python-version }}
 
     - name: Install the project
-      run: |
-        uv sync
+      run: uv sync
 
     # Commented out because linter rules violations are not fixed yet
     # - name: Lint with ruff
@@ -43,5 +42,4 @@ jobs:
     #     uv run ruff check ${{ github.event.repository.name }}
 
     - name: Test with pytest
-      run: |
-        uv run pytest -v -s
+      run: uv run pytest -v -s
