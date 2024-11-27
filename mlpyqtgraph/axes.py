@@ -29,14 +29,17 @@ class Axis2D(pg.PlotItem):
                   '--': QtCore.Qt.DashLine,
                   ':': QtCore.Qt.DotLine,
                   '.-': QtCore.Qt.DashDotLine}
-    colors_defs = colors.ColorDefinitions()
-    line_colors = colors_defs.get_line_colors()
-    scale_box_line_color = colors_defs.get_scale_box_colors(part='line')
-    scale_box_fill_color = colors_defs.get_scale_box_colors(part='fill')
+
     def __init__(self, index, **kwargs):
         parent = kwargs.pop('parent', None)
         super().__init__(parent=parent, **kwargs)
         self.index = index
+        self.colors_defs = colors.ColorDefinitions()
+        self.line_colors = self.colors_defs.get_line_colors()
+        self.scale_box_line_color = \
+            self.colors_defs.get_scale_box_colors(part='line')
+        self.scale_box_fill_color = \
+            self.colors_defs.get_scale_box_colors(part='fill')
         self.setup()
 
     def setup(self, padding=0.01):
