@@ -1,5 +1,42 @@
 # CHANGELOG
 
+## v0.6.2 (2024-11-27)
+
+### Bug Fixes
+
+* Correct defintion of line colors for 2d axes ([`4df55b6`](https://github.com/swvanbuuren/mlpyqtgraph/commit/4df55b604348f9b90ebf81871b88e956537cecfd))
+
+### Chores
+
+* Add support for python v3.12 ([`2fef80e`](https://github.com/swvanbuuren/mlpyqtgraph/commit/2fef80e640a0546f89783a9ced708f57bab64a86))
+
+### Code Style
+
+* Remove unnecessary linebreaks ([`0ec47d1`](https://github.com/swvanbuuren/mlpyqtgraph/commit/0ec47d1e5f7706af588c832fd11f9c11caec03a6))
+
+* Update ruff linting rules ([`946832b`](https://github.com/swvanbuuren/mlpyqtgraph/commit/946832b21c4ed1903b792ee21d35ce76114918f8))
+
+* Switch to ruff as linter, including rules ([`2669ded`](https://github.com/swvanbuuren/mlpyqtgraph/commit/2669dede05705df6a43980b47f5fe388062e9985))
+
+### Continuous Integration
+
+* Switch to docker container for testing and linting ([`ac2a29c`](https://github.com/swvanbuuren/mlpyqtgraph/commit/ac2a29cc4b20fb945c18a3dc263d6d5569dc9316))
+
+* Include basic testing running and drop python v3.12 support ([`68d9df9`](https://github.com/swvanbuuren/mlpyqtgraph/commit/68d9df9eb3ee102a2361dcd715976d2b789ac70f))
+
+### Documentation
+
+* Update year in license text ([`55329ad`](https://github.com/swvanbuuren/mlpyqtgraph/commit/55329ad3a31c7d72dc53c0adb923c05902fce865))
+
+* Update to align with new config options setup ([`7b8770a`](https://github.com/swvanbuuren/mlpyqtgraph/commit/7b8770ac3a53ad03e42b3caf000b7a6bad029376))
+
+### Refactoring
+
+* Simplify plot3 and surf examples ([`d7d48b0`](https://github.com/swvanbuuren/mlpyqtgraph/commit/d7d48b0f2f01dd265c5a31eece2758027f07110a))
+
+* Line and surface gl options in 3d axis ([`cc9b6c6`](https://github.com/swvanbuuren/mlpyqtgraph/commit/cc9b6c6ced8d73ce171301c87ad76b2d0a0b0ef5))
+
+* Simplified configuration options naming ([`496031a`](https://github.com/swvanbuuren/mlpyqtgraph/commit/496031a3ae8e23223ae641cc6e9aebfeba0d729f))
 ## v0.6.1 (2024-11-10)
 
 ### Bug Fixes
