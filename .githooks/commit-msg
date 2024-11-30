@@ -1,0 +1,26 @@
+#!/bin/sh
+#
+# A hook script to check that the commit message follows Angular style.
+
+# Regex to match Angular commit message style (validating only the first line)
+COMMIT_MSG_REGEX="^(feat|fix|docs|style|refactor|test|chore|build|ci|perf|revert)(\(\w+\))?: .{1,50}"
+
+# Read only the first line of the commit message
+FIRST_LINE=$(head -n 1 "$1")
+
+# Validate the first line
+if ! echo "$FIRST_LINE" | grep -qE "$COMMIT_MSG_REGEX"; then
+  echo >&2 "ERROR: Commit message does not follow Angular style."
+  echo >&2 ""
+  echo >&2 "The first line must follow the format: <type>(<scope>): <short description>"
+  echo >&2 ""
+  echo >&2 "Examples:"
+  echo >&2 "  feat(core): add new feature"
+  echo >&2 "  fix(parser): handle edge case"
+  echo >&2 "  docs(readme): update project overview"
+  echo >&2 ""
+  exit 1
+fi
+
+# If the first line is valid, allow the commit
+exit 0

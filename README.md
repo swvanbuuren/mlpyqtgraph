@@ -51,6 +51,15 @@ Please refer to the [examples](/examples) for a few applications of mlpyqtgraph.
 Check out the [documentation](https://swvanbuuren.github.io/mlpyqtgraph/)!
 Please note that it's currently still under construction.
 
+## Pre-commit hooks
+
+This repository comes with pre-commit hooks, which are stored in
+[`.githooks`](.githooks). To enable the hooks issue:
+
+```bash
+git config --local core.hooksPath .githooks/
+```
+
 ## License
 
 An MIT style license applies for mlpyqtgraph, see the [LICENSE](LICENSE) file
