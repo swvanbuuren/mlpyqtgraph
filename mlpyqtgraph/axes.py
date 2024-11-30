@@ -23,7 +23,7 @@ class InvalidAxis(RootException):
     """ Exception raised for invalid axes """
 
 
-class Axis2D(pg.PlotItem):
+class Axis2D(pg.PlotItem):  # noqa: PLR0904
     """ Axis for plots in a given figure layout """
     pen_styles = {'-': QtCore.Qt.SolidLine,
                   '--': QtCore.Qt.DashLine,
