@@ -6,3 +6,4 @@ mlpyqtgraph.egg-info/
 build/
 uv.lock
 .venv/
+.ruff_cache/
