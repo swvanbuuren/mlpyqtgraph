@@ -15,6 +15,7 @@ def figure(*args, **kwargs):
     container.current = figure_worker
     return figure_worker
 
+
 def gcf():
     """ Returns the current figure """
     container = refs.worker.get('figure')
@@ -52,6 +53,7 @@ def surf(*args, **kwargs):
     gcf().change_layout('Qt')
     gcf().create_axis(axis_type='3D')
     gca().surf(*args, **kwargs)
+
 
 def plot3(*args, **kwargs):
     """ Plots a 3D line """
