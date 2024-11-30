@@ -20,6 +20,7 @@ class ConfigOptions:
         'no_segmented_line_mode': False,
         'black_on_white': True,
     }
+
     def __init__(self, **kwargs):
         self.set_options(**kwargs)
 
