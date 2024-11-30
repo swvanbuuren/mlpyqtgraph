@@ -42,4 +42,4 @@ jobs:
     #     uv run ruff check ${{ github.event.repository.name }}
 
     - name: Test with pytest
-      run: uv run pytest -v -s
+      run: uv run pytest

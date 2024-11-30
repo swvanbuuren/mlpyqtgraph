@@ -134,3 +134,6 @@ extend-select = [
 
 [tool.ruff.format]
 quote-style = "single"
+
+[tool.pytest.ini_options]
+addopts = "-v -s"
