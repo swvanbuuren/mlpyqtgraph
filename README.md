@@ -54,10 +54,10 @@ Please note that it's currently still under construction.
 ## Pre-commit hooks
 
 This repository comes with pre-commit hooks, which are stored in
-[`.githooks`](.githooks). To enable the hooks issue:
+[`.hooks`](.hooks). To enable the hooks issue:
 
 ```bash
-git config --local core.hooksPath .githooks/
+git config --local core.hooksPath .hooks/
 ```
 
 ## License
