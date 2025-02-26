@@ -1,5 +1,34 @@
 # CHANGELOG
 
+## v0.6.3 (2025-02-26)
+
+### Bug Fixes
+
+* Avoid redrawing 3d grid axes all the time ([`d05e8c5`](https://github.com/swvanbuuren/mlpyqtgraph/commit/d05e8c5266fa153c10a521b5bedd8163dc3f8a6a))
+
+### Chores
+
+* Increase python and pyqtgraph version demands ([`625bed5`](https://github.com/swvanbuuren/mlpyqtgraph/commit/625bed5b1301a8ad45a6c628ae6066256e2039c5))
+
+* Change pre-commit hooks directory ([`6d5a1cf`](https://github.com/swvanbuuren/mlpyqtgraph/commit/6d5a1cfdd95d1e7cf442d8885b24de6eec9531f7))
+
+* Add pre-commit hooks with config instructions ([`d2567cd`](https://github.com/swvanbuuren/mlpyqtgraph/commit/d2567cdd2925f282c8cf682460add9f6e475328e))
+
+* Ignore ruff_cache directory ([`ea659c8`](https://github.com/swvanbuuren/mlpyqtgraph/commit/ea659c85e027b8e99c549dcbf4b4e88d523a79a3))
+
+### Code Style
+
+* Fix ruff linter warning ([`0123ae3`](https://github.com/swvanbuuren/mlpyqtgraph/commit/0123ae3cd1fffe24efdb9f8988dcc8d53edc0b47))
+
+* Add ruff exception for axis2d ([`0add750`](https://github.com/swvanbuuren/mlpyqtgraph/commit/0add750cb47fea31a118b7dacf3fae3553070742))
+
+* Add missing linebreaks ([`12a81da`](https://github.com/swvanbuuren/mlpyqtgraph/commit/12a81da6b7ed6af1325cf3df6759f1bd094cb25c))
+
+### Testing
+
+* Set default pytest arguments ([`cd0bcc8`](https://github.com/swvanbuuren/mlpyqtgraph/commit/cd0bcc8c535c3b0d352527ac20282523f025767f))
+
+* Add test usage of decorator options ([`16f5a7b`](https://github.com/swvanbuuren/mlpyqtgraph/commit/16f5a7b443997e927c91c5535491785beffa56e0))
 ## v0.6.2 (2024-11-27)
 
 ### Bug Fixes
