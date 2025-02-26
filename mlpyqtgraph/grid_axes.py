@@ -394,6 +394,8 @@ class GLGridAxis(GLGridAxisBase):
         }
         self.bounding_box_min = np.array([-0.05, -0.05, -0.05])
         self.bounding_box_max = np.array([1.05, 1.05, 1.05])
+        self.last_view = [0.0, 0.0]
+        self.force_paint = False
         self.setData(**kwargs)
 
     def set_bounding_box_corners(self):
@@ -514,12 +516,24 @@ class GLGridAxis(GLGridAxisBase):
             if move_down:
                 self.axes[item].move_down()
 
+    def paint1(self):
+        """ Forcefully paint the scene """
+        self.force_paint = True
+        self.paint()
+
     def paint(self):
         """Override paintGL() to add custom code to draw the grid and labels"""
         super().paint()
 
         camera_params = self.view().cameraParams()
         azimuth, elevation = camera_params['azimuth'], camera_params['elevation']
+
+        if self.last_view == [azimuth, elevation]:
+            if not self.force_paint:
+                return
+        self.last_view = [azimuth, elevation]
+        self.force_paint = False
+
         azimuth = np.mod(azimuth, 360.0)
 
         # hide by default
