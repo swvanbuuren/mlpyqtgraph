@@ -13,6 +13,7 @@ from mlpyqtgraph.config import options
 from mlpyqtgraph import colors
 from mlpyqtgraph.grid_axes import GLGridAxis
 from mlpyqtgraph.utils.ticklabels import coord_generator, limit_generator
+from mlpyqtgraph.utils.GLSurfacePlotItem import GLSurfacePlotItem
 
 
 class RootException(Exception):
@@ -277,45 +278,21 @@ class Axis2D(pg.PlotItem):  # noqa: PLR0904
 class Axis3D(gl.GLGraphicsItem.GLGraphicsItem):
     """ 3D axis """
 
-    gl_options = {
-        ogl.GL_DEPTH_TEST: True,
-        ogl.GL_BLEND: True,
-        ogl.GL_ALPHA_TEST: False,
-        ogl.GL_CULL_FACE: False,
-        ogl.GL_LINE_SMOOTH: True,
-        'glHint': (ogl.GL_LINE_SMOOTH_HINT, ogl.GL_NICEST),
-        'glBlendFunc': (ogl.GL_SRC_ALPHA, ogl.GL_ONE_MINUS_SRC_ALPHA),
-    }
-
-    gl_surface_options = {
-        **gl_options,
-        ogl.GL_POLYGON_OFFSET_FILL: True,
-        'glPolygonOffset': (1.0, 1.0 ),
-    }
-
-    gl_line_options = {
-        **gl_options,
-        ogl.GL_POLYGON_OFFSET_FILL: False,
-    }
-
     def __init__(self, index, parentItem=None, **kwargs):
         super().__init__(parentItem=parentItem, **kwargs)
         self.index = index
         self.grid_axes = GLGridAxis(parentItem=self)
         self.default_surface_options = {
-            'glOptions': self.gl_surface_options,
-            'colormap': options.get_option('colormap'),
-            'smooth': True,
+            'color': (0, 0, 0, 1),
+            'showGrid': True,
+            'lineAntialias': options.get_option('antialiasing'),
             'projection': options.get_option('projection'),
+            'colormap': options.get_option('colormap'),
         }
         self.default_line_options = {
             'color': (0, 0, 0, 1),
             'antialias': options.get_option('antialiasing'),
             'width': 1,
-        }
-        self.grid_line_options = {
-            **self.default_line_options,
-            'glOptions': self.gl_line_options,
         }
 
     def _setView(self, v):
@@ -343,11 +320,13 @@ class Axis3D(gl.GLGraphicsItem.GLGraphicsItem):
     def surf(self, *args, **kwargs):
         """ Adds a 3D surface plot item to the view widget  """
         kwargs = dict(self.default_surface_options, **kwargs)
-        surface = gl.GLSurfacePlotItem(*args, **kwargs)
+        coords = ('x', 'y', 'z')
+        for idx, arg in enumerate(args):
+            kwargs[coords[idx]] = arg
+        surface = GLSurfacePlotItem(**kwargs)
         self.view().addItem(surface)
         self.set_colormap(surface, colormap=kwargs['colormap'])
         self.set_projection_method(*args, method=kwargs['projection'])
-        self.add_grid_lines(*args)
         self.update_grid_axes(*args, **kwargs)
 
     def calculate_ax_coord_lims(self, x, y, z):
@@ -363,21 +342,6 @@ class Axis3D(gl.GLGraphicsItem.GLGraphicsItem):
         projection = kwargs.get('projection', 'perspective')
         self.view().setCameraPosition(**self.grid_axes.best_camera(method=projection))
         self.grid_axes.paint1()
-
-    def add_grid_lines(self, *args):
-        """ Plots all grid lines """
-        x, y, z = args[:3]
-        rows, columns = z.shape
-        for row in range(rows):
-            self.add_line(
-                x[row]*np.ones(columns), y, z[row],
-                **self.grid_line_options
-            )
-        for col in range(columns):
-            self.add_line(
-                x, y[col]*np.ones(rows), z[:, col],
-                **self.grid_line_options
-            )
 
     def add_line(self, *args, **kwargs):
         """ Plots a single grid line for given coordinates """
