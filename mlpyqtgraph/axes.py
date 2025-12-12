@@ -336,7 +336,6 @@ class Axis3D(GLGraphicsItem):
         self.grid_axes.setData(coords=coords, limits=limits)
         projection = kwargs.get('projection', 'perspective')
         self.view().setCameraPosition(**self.grid_axes.best_camera(method=projection))
-        self.grid_axes.paint1()
 
     def add_line(self, *args, **kwargs):
         """ Plots a single grid line for given coordinates """

@@ -9,6 +9,39 @@ import OpenGL.GL as ogl
 from collections import namedtuple
 
 
+def check_visibility(azimuth_range, azimuth, elevation_range=None, elevation=None):
+    """Check if item should be visible based on camera angles.
+    
+    Handles azimuth ranges that may wrap around 360 degrees.
+    For example, (270, 450) covers both 270-360 and 0-90.
+    
+    Args:
+        azimuth_range: tuple (min, max) or None
+        elevation_range: tuple (min, max) or None
+        azimuth: current azimuth angle
+        elevation: current elevation angle
+    
+    Returns:
+        bool: True if visible, False otherwise
+    """
+    if azimuth_range is not None:
+        min_az, max_az = azimuth_range
+        if max_az > 360:
+            azimuth_extended = azimuth + 360 if azimuth < min_az % 360 else azimuth
+            if not (min_az <= azimuth_extended < max_az):
+                return False
+        else:
+            if not (min_az <= azimuth < max_az):
+                return False
+    
+    if elevation_range is not None:
+        min_el, max_el = elevation_range
+        if not (min_el <= elevation < max_el):
+            return False
+    
+    return True
+
+
 class GLGridPlane(GLGraphicsItem):
     """ Grid plane in 3D space """
 
@@ -31,7 +64,9 @@ class GLGridPlane(GLGraphicsItem):
         self.offset = 0.0
         self.coords = (0, 1), (0, 1)
         self.limits = (-0.05, 1.05), (-0.05, 1.05)
-        
+        self.azimuth_range: tuple | None = None
+        self.elevation_range: tuple | None = None
+
         self.lineplot = GLLinePlotItem(parentItem=self, mode='lines', **self.line_options)
         self.lineplot.setDepthValue(self.depthValue() + 1)
         self.setParentItem(parentItem)
@@ -53,9 +88,11 @@ class GLGridPlane(GLGraphicsItem):
                               second axis and the grid
         limits                tuples with the limits for the first and
                               second axis and the grid
+        azimuth_range         tuple (min, max) or list of tuples for visibility
+        elevation_range       tuple (min, max) or list of tuples for visibility
         ====================  ==================================================
         """
-        args = ('plane', 'offset', 'coords', 'limits')
+        args = ('plane', 'offset', 'coords', 'limits', 'azimuth_range', 'elevation_range')
         for k in kwargs.keys():
             if k not in args:
                 raise ValueError(f'Invalid keyword argument: {k} (allowed arguments are {args})')
@@ -65,6 +102,12 @@ class GLGridPlane(GLGraphicsItem):
         self.mesh.setMeshData(vertexes=vertices, faces=faces)
         self.lineplot.setData(pos=self._get_all_grid_lines())
         self.update()
+
+    def is_visible(self, azimuth, elevation):
+        """Check if plane should be visible based on camera angles."""
+        return check_visibility(
+            self.azimuth_range, azimuth, self.elevation_range, elevation
+        )
 
     def grid_positions(self):
         """Create a grid positions in the specified plane.
@@ -180,13 +223,16 @@ class GLAxis(GLGraphicsItem):
         self.color = (0, 0, 0, 255)
         self._is_bottom = True
         self.labels = []
+        self.azimuth_range: tuple | None = None
+        self.elevates: bool = True
+
         self.lineplot = GLLinePlotItem(parentItem=self, mode='lines', **self.line_options)
         self.lineplot.setDepthValue(self.depthValue() + 1)
         self.setData(**kwargs)
 
     def setData(self, **kwargs):
         """ Update the axis labels """
-        args =  ('coords', 'ax_limits', 'limits', 'axis', 'font', 'color')
+        args = ('coords', 'ax_limits', 'limits', 'axis', 'font', 'color', 'azimuth_range', 'elevates')
         for k in kwargs.keys():
             if k not in args:
                 raise ValueError(f'Invalid keyword argument: {k} (allowed arguments are {args})')
@@ -195,6 +241,10 @@ class GLAxis(GLGraphicsItem):
         self.labels = list(self.create_labels())
         self.lineplot.setData(pos=self.build_line_segments())
         self.update()
+
+    def is_visible(self, azimuth, elevation):
+        """Check if axis should be visible based on camera angles."""
+        return check_visibility(self.azimuth_range, azimuth)
 
     def alignments(self):
         """ Define the grid points in the plain defined by axis=offset """
@@ -327,16 +377,25 @@ class GLAxis(GLGraphicsItem):
         self.move_axis_z(self.limits[1][0])
         self._is_bottom = True
 
+    def elevate(self, elevation):
+        """ Raise or lower the axis labels based on elevation """
+        if not self.elevates:
+            return
+        if elevation < 0.0:
+            self.move_up()
+        else:
+            self.move_down()
+
 
 class GLGridAxis(GLGraphicsItem):
     """ Draw a grid with axes, ticks and labels in 3D space for given
     coordinates and limits """
 
     GridPlaneParams = namedtuple(
-        'GridPlaneParams', ['plane', 'side', 'coord1', 'coord2']
+        'GridPlaneParams', ['plane', 'side', 'coord1', 'coord2', 'azimuth_range', 'elevation_range']
     )
     AxisParams = namedtuple(
-        'GridPlaneParams', ['axis', 'edge', 'coord1', 'coord2']
+        'AxisParams', ['axis', 'edge', 'coord1', 'coord2', 'azimuth_range', 'elevates']
     )
 
     def __init__(self, parentItem=None, **kwargs):
@@ -353,19 +412,19 @@ class GLGridAxis(GLGraphicsItem):
             'y': (-1.05, 1.05),
             'z': (-1.05, 1.05),
         }
-        self.last_view = [0.0, 0.0]
+        self._last_view = [0.0, 0.0]
         self.force_paint = False
         self.setData(**kwargs)
 
     def grid_generator(self):
         """ yields the grid planes with their parameters """
         grid_plane_params = {
-            'xl': self.GridPlaneParams('x', 0, 'y', 'z'),
-            'xr': self.GridPlaneParams('x', 1, 'y', 'z'),
-            'yl': self.GridPlaneParams('y', 0, 'x', 'z'),
-            'yr': self.GridPlaneParams('y', 1, 'x', 'z'),
-            'zb': self.GridPlaneParams('z', 0, 'x', 'y'),
-            'zt': self.GridPlaneParams('z', 1, 'x', 'y'),
+            'xl': self.GridPlaneParams('x', 0, 'y', 'z', (270.0, 450.0), None),
+            'xr': self.GridPlaneParams('x', 1, 'y', 'z', (90.0, 270.0), None),
+            'yl': self.GridPlaneParams('y', 0, 'x', 'z', (0.0, 180.0), None),
+            'yr': self.GridPlaneParams('y', 1, 'x', 'z', (180.0, 360.0), None),
+            'zb': self.GridPlaneParams('z', 0, 'x', 'y', None, (0.0, 90.0)),
+            'zt': self.GridPlaneParams('z', 1, 'x', 'y', None, (-90.0, 0.0)),
         }
         for key, params in grid_plane_params.items():
             plane = params.plane
@@ -377,28 +436,30 @@ class GLGridAxis(GLGraphicsItem):
                 'offset': self.limits[plane][side],
                 'coords': [self.coords[coord1], self.coords[coord2]],
                 'limits': [self.limits[coord1], self.limits[coord2]],
+                'azimuth_range': params.azimuth_range,
+                'elevation_range': params.elevation_range,
             }
             yield key, grid_data
 
     def label_generator(self):
         """ yields the axis labels with their parameters """
         axis_labels_params = {
-            'xmm': self.AxisParams('x', 'mm', 'y', 'z'),
-            'xmp': self.AxisParams('x', 'mp', 'y', 'z'),
-            'xpm': self.AxisParams('x', 'pm', 'y', 'z'),
-            'xpp': self.AxisParams('x', 'pp', 'y', 'z'),
-            'ymm': self.AxisParams('y', 'mm', 'x', 'z'),
-            'ypm': self.AxisParams('y', 'pm', 'x', 'z'),
-            'ymp': self.AxisParams('y', 'mp', 'x', 'z'),
-            'ypp': self.AxisParams('y', 'pp', 'x', 'z'),
-            'zrmm': self.AxisParams('z', 'rmm', 'x', 'y'),
-            'zrmp': self.AxisParams('z', 'rmp', 'x', 'y'),
-            'zrpm': self.AxisParams('z', 'rpm', 'x', 'y'),
-            'zrpp': self.AxisParams('z', 'rpp', 'x', 'y'),
-            'zlmm': self.AxisParams('z', 'lmm', 'x', 'y'),
-            'zlmp': self.AxisParams('z', 'lmp', 'x', 'y'),
-            'zlpm': self.AxisParams('z', 'lpm', 'x', 'y'),
-            'zlpp': self.AxisParams('z', 'lpp', 'x', 'y'),
+            'xmm': self.AxisParams('x', 'mm', 'y', 'z', (180.0, 270.0), True),
+            'xmp': self.AxisParams('x', 'mp', 'y', 'z', (270.0, 360.0), True),
+            'xpm': self.AxisParams('x', 'pm', 'y', 'z', (90.0, 180.0), True),
+            'xpp': self.AxisParams('x', 'pp', 'y', 'z', (0.0, 90.0), True),
+            'ymm': self.AxisParams('y', 'mm', 'x', 'z', (180.0, 270.0), True),
+            'ypm': self.AxisParams('y', 'pm', 'x', 'z', (270.0, 360.0), True),
+            'ymp': self.AxisParams('y', 'mp', 'x', 'z', (90.0, 180.0), True),
+            'ypp': self.AxisParams('y', 'pp', 'x', 'z', (0.0, 90.0), True),
+            'zrmm': self.AxisParams('z', 'rmm', 'x', 'y', (135.0, 180.0), False),
+            'zrmp': self.AxisParams('z', 'rmp', 'x', 'y', (45.0, 90.0), False),
+            'zrpm': self.AxisParams('z', 'rpm', 'x', 'y', (215.0, 270.0), False),
+            'zrpp': self.AxisParams('z', 'rpp', 'x', 'y', (315.0, 360.0), False),
+            'zlmm': self.AxisParams('z', 'lmm', 'x', 'y', (90.0, 135.0), False),
+            'zlmp': self.AxisParams('z', 'lmp', 'x', 'y', (0.0, 45.0), False),
+            'zlpm': self.AxisParams('z', 'lpm', 'x', 'y', (180.0, 215.0), False),
+            'zlpp': self.AxisParams('z', 'lpp', 'x', 'y', (270.0, 315.0), False),
         }
 
         for key, params in axis_labels_params.items():
@@ -411,6 +472,8 @@ class GLGridAxis(GLGraphicsItem):
                 'ax_limits': self.limits[axis],
                 'coords': self.coords[axis],
                 'limits': [self.limits[coord1], self.limits[coord2]],
+                'azimuth_range': params.azimuth_range,
+                'elevates': params.elevates,
             }
             yield key, axis_data
 
@@ -429,12 +492,8 @@ class GLGridAxis(GLGraphicsItem):
                 raise ValueError(f'Invalid keyword argument: {k} (allowed arguments are {args})')
         for key, value in kwargs.items():
             setattr(self, key, value)
-        
         self._update_container(self.grid, self.grid_generator, GLGridPlane)
         self._update_container(self.axes, self.label_generator, GLAxis)
-       
-        if self.view():
-            self.paint1()
         self.update()
 
     def bounding_box_corners(self):
@@ -455,44 +514,24 @@ class GLGridAxis(GLGraphicsItem):
         bounding_box_diagonal = np.linalg.norm(bbox_max - bbox_min)
         fov_rad = np.radians(field_of_view)
         camera_distance = (bounding_box_diagonal / 2.0) / np.tan(fov_rad / 2.0) * distance_factor
-
         return {'pos': new_pos, 'distance': camera_distance}
 
-    def show_grids(self, *grid_items):
-        """Show chosen grid items"""
-        for item in grid_items:
-            self.grid[item].show()
-
-    def show_axes(self, *axis_items):
-        """Show chosen axis items"""
-        for item in axis_items:
-            self.axes[item].show()
-
-    def move_axes(self, move_up=False, move_down=False):
-        """Move chosen axis items up or down"""
-        axis_items = ('xmm', 'xmp', 'xpm', 'xpp', 'ymm', 'ymp', 'ypm', 'ypp')
-        for item in axis_items:
-            if move_up:
-                self.axes[item].move_up()
-            if move_down:
-                self.axes[item].move_down()
-
-    def paint1(self):
-        """ Forcefully paint the scene """
-        self.force_paint = True
-        self.paint()
-
+    def view_angle(self):
+        """ Get the current view angle """
+        if not self.view():
+            return 0.0, 0.0
+        camera_params = self.view().cameraParams()
+        azimuth, elevation = camera_params['azimuth'], camera_params['elevation']
+        azimuth = np.mod(azimuth, 360.0)
+        return azimuth, elevation
+    
     def paint(self):
         super().paint()
 
-        camera_params = self.view().cameraParams()
-        azimuth, elevation = camera_params['azimuth'], camera_params['elevation']
-
-        if self.last_view == [azimuth, elevation]:
-            if not self.force_paint:
-                return
-        self.last_view = [azimuth, elevation]
-        self.force_paint = False
+        azimuth, elevation = self.view_angle()
+        if self._last_view == [azimuth, elevation]:
+            return
+        self._last_view = [azimuth, elevation]
 
         # hide by default
         for grid in self.grid.values():
@@ -500,41 +539,12 @@ class GLGridAxis(GLGraphicsItem):
         for label in self.axes.values():
             label.hide()
 
-        azimuth = np.mod(azimuth, 360.0)
+        # Show items based on visibility configuration
+        for grid in self.grid.values():
+            if grid.is_visible(azimuth, elevation):
+                grid.show()
 
-        if 0.0 <= azimuth < 90.0:
-            self.show_axes('xpp', 'ypp')
-            self.show_grids('xl', 'yl')
-        elif 90.0 <= azimuth < 180.0:
-            self.show_axes('xpm', 'ymp')
-            self.show_grids('xr', 'yl')
-        elif 180.0 <= azimuth < 270.0:
-            self.show_axes('xmm', 'ymm')
-            self.show_grids('xr', 'yr')
-        else:
-            self.show_axes('xmp', 'ypm')
-            self.show_grids('xl', 'yr')
-
-        if 0.0 <= azimuth < 45.0:
-            self.show_axes('zlmp')
-        elif 45.0 <= azimuth < 90.0:
-            self.show_axes('zrmp')
-        elif 90.0 <= azimuth < 135.0:
-            self.show_axes('zlmm')
-        elif 135.0 <= azimuth < 180.0:
-            self.show_axes('zrmm')
-        elif 180.0 <= azimuth < 215.0:
-            self.show_axes('zlpm')
-        elif 215.0 <= azimuth < 270.0:
-            self.show_axes('zrpm')
-        elif 270.0 <= azimuth < 315.0:
-            self.show_axes('zlpp')
-        elif 315.0 <= azimuth < 360.0:
-            self.show_axes('zrpp')
-
-        if elevation < 0.0:
-            self.show_grids('zt')
-            self.move_axes(move_up=True)
-        else:
-            self.show_grids('zb')
-            self.move_axes(move_down=True)
+        for axis in self.axes.values():
+            if axis.is_visible(azimuth, elevation):
+                axis.show()
+                axis.elevate(elevation)
