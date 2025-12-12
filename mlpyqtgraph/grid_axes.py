@@ -2,11 +2,9 @@
 
 import numpy as np
 from pyqtgraph import QtGui, QtCore
-import pyqtgraph as pg
+from pyqtgraph import Vector
 from pyqtgraph.opengl.GLGraphicsItem import GLGraphicsItem
 from pyqtgraph.opengl import GLLinePlotItem, GLMeshItem, GLTextItem
-import OpenGL.GL as ogl
-from collections import namedtuple
 
 
 def check_visibility(azimuth_range, azimuth, elevation_range=None, elevation=None):
@@ -390,18 +388,35 @@ class GLAxis(GLGraphicsItem):
 class GLGridAxis(GLGraphicsItem):
     """ Draw a grid with axes, ticks and labels in 3D space for given
     coordinates and limits """
-
-    GridPlaneParams = namedtuple(
-        'GridPlaneParams', ['plane', 'side', 'coord1', 'coord2', 'azimuth_range', 'elevation_range']
+    grid_configs = (
+        ('x', 'y', 'z', (270.0, 450.0), None),
+        ('x', 'y', 'z', (90.0, 270.0), None),
+        ('y', 'x', 'z', (0.0, 180.0), None),
+        ('y', 'x', 'z', (180.0, 360.0), None),
+        ('z', 'x', 'y', None, (0.0, 90.0)),
+        ('z', 'x', 'y', None, (-90.0, 0.0)),
     )
-    AxisParams = namedtuple(
-        'AxisParams', ['axis', 'edge', 'coord1', 'coord2', 'azimuth_range', 'elevates']
+    axis_configs = (
+        ('x', 'mm', 'y', 'z', (180.0, 270.0), True),
+        ('x', 'mp', 'y', 'z', (270.0, 360.0), True),
+        ('x', 'pm', 'y', 'z', (90.0, 180.0), True),
+        ('x', 'pp', 'y', 'z', (0.0, 90.0), True),
+        ('y', 'mm', 'x', 'z', (180.0, 270.0), True),
+        ('y', 'pm', 'x', 'z', (270.0, 360.0), True),
+        ('y', 'mp', 'x', 'z', (90.0, 180.0), True),
+        ('y', 'pp', 'x', 'z', (0.0, 90.0), True),
+        ('z', 'rmm', 'x', 'y', (135.0, 180.0), False),
+        ('z', 'rmp', 'x', 'y', (45.0, 90.0), False),
+        ('z', 'rpm', 'x', 'y', (215.0, 270.0), False),
+        ('z', 'rpp', 'x', 'y', (315.0, 360.0), False),
+        ('z', 'lmm', 'x', 'y', (90.0, 135.0), False),
+        ('z', 'lmp', 'x', 'y', (0.0, 45.0), False),
+        ('z', 'lpm', 'x', 'y', (180.0, 215.0), False),
+        ('z', 'lpp', 'x', 'y', (270.0, 315.0), False),
     )
 
     def __init__(self, parentItem=None, **kwargs):
         super().__init__(parentItem=parentItem)
-        self.grid = {}
-        self.axes = {}
         self.coords = {
             'x': [-1.0, 0.0, 1.0],
             'y': [-1.0, 0.0, 1.0],
@@ -412,77 +427,41 @@ class GLGridAxis(GLGraphicsItem):
             'y': (-1.05, 1.05),
             'z': (-1.05, 1.05),
         }
+        self._grid = []
+        self._axes = []
         self._last_view = [0.0, 0.0]
-        self.force_paint = False
         self.setData(**kwargs)
 
     def grid_generator(self):
         """ yields the grid planes with their parameters """
-        grid_plane_params = {
-            'xl': self.GridPlaneParams('x', 0, 'y', 'z', (270.0, 450.0), None),
-            'xr': self.GridPlaneParams('x', 1, 'y', 'z', (90.0, 270.0), None),
-            'yl': self.GridPlaneParams('y', 0, 'x', 'z', (0.0, 180.0), None),
-            'yr': self.GridPlaneParams('y', 1, 'x', 'z', (180.0, 360.0), None),
-            'zb': self.GridPlaneParams('z', 0, 'x', 'y', None, (0.0, 90.0)),
-            'zt': self.GridPlaneParams('z', 1, 'x', 'y', None, (-90.0, 0.0)),
-        }
-        for key, params in grid_plane_params.items():
-            plane = params.plane
-            side = params.side
-            coord1 = params.coord1
-            coord2 = params.coord2
-            grid_data = {
+        for idx, (plane, coord1, coord2, azimuth_range, elevation_range) in enumerate(self.grid_configs):
+            yield {
                 'plane': plane,
-                'offset': self.limits[plane][side],
+                'offset': self.limits[plane][idx % 2],
                 'coords': [self.coords[coord1], self.coords[coord2]],
                 'limits': [self.limits[coord1], self.limits[coord2]],
-                'azimuth_range': params.azimuth_range,
-                'elevation_range': params.elevation_range,
+                'azimuth_range': azimuth_range,
+                'elevation_range': elevation_range,
             }
-            yield key, grid_data
 
     def label_generator(self):
         """ yields the axis labels with their parameters """
-        axis_labels_params = {
-            'xmm': self.AxisParams('x', 'mm', 'y', 'z', (180.0, 270.0), True),
-            'xmp': self.AxisParams('x', 'mp', 'y', 'z', (270.0, 360.0), True),
-            'xpm': self.AxisParams('x', 'pm', 'y', 'z', (90.0, 180.0), True),
-            'xpp': self.AxisParams('x', 'pp', 'y', 'z', (0.0, 90.0), True),
-            'ymm': self.AxisParams('y', 'mm', 'x', 'z', (180.0, 270.0), True),
-            'ypm': self.AxisParams('y', 'pm', 'x', 'z', (270.0, 360.0), True),
-            'ymp': self.AxisParams('y', 'mp', 'x', 'z', (90.0, 180.0), True),
-            'ypp': self.AxisParams('y', 'pp', 'x', 'z', (0.0, 90.0), True),
-            'zrmm': self.AxisParams('z', 'rmm', 'x', 'y', (135.0, 180.0), False),
-            'zrmp': self.AxisParams('z', 'rmp', 'x', 'y', (45.0, 90.0), False),
-            'zrpm': self.AxisParams('z', 'rpm', 'x', 'y', (215.0, 270.0), False),
-            'zrpp': self.AxisParams('z', 'rpp', 'x', 'y', (315.0, 360.0), False),
-            'zlmm': self.AxisParams('z', 'lmm', 'x', 'y', (90.0, 135.0), False),
-            'zlmp': self.AxisParams('z', 'lmp', 'x', 'y', (0.0, 45.0), False),
-            'zlpm': self.AxisParams('z', 'lpm', 'x', 'y', (180.0, 215.0), False),
-            'zlpp': self.AxisParams('z', 'lpp', 'x', 'y', (270.0, 315.0), False),
-        }
-
-        for key, params in axis_labels_params.items():
-            axis = params.axis
-            edge = params.edge
-            coord1 = params.coord1
-            coord2 = params.coord2
-            axis_data = {
+        for axis, edge, coord1, coord2, azimuth_range, elevates in self.axis_configs:
+            yield {
                 'axis': axis + edge,
                 'ax_limits': self.limits[axis],
                 'coords': self.coords[axis],
                 'limits': [self.limits[coord1], self.limits[coord2]],
-                'azimuth_range': params.azimuth_range,
-                'elevates': params.elevates,
+                'azimuth_range': azimuth_range,
+                'elevates': elevates,
             }
-            yield key, axis_data
 
-    def _update_container(self, container: dict, generator, item_class):
-        for key, data in generator():
-            if key in container:
-                container[key].setData(**data)
+    def _update_container(self, container: list, generator, item_class):
+        for idx, data in enumerate(generator()):
+            if idx < len(container):
+                container[idx].setData(**data)
             else:
-                container[key] = item_class(parentItem=self, **data)
+                container.append(item_class(parentItem=self, **data))
 
     def setData(self, **kwargs):
         """ Update the axis labels """
@@ -492,8 +471,8 @@ class GLGridAxis(GLGraphicsItem):
                 raise ValueError(f'Invalid keyword argument: {k} (allowed arguments are {args})')
         for key, value in kwargs.items():
             setattr(self, key, value)
-        self._update_container(self.grid, self.grid_generator, GLGridPlane)
-        self._update_container(self.axes, self.label_generator, GLAxis)
+        self._update_container(self._grid, self.grid_generator, GLGridPlane)
+        self._update_container(self._axes, self.label_generator, GLAxis)
         self.update()
 
     def bounding_box_corners(self):
@@ -510,7 +489,7 @@ class GLGridAxis(GLGraphicsItem):
             distance_factor = 1.4
         bbox_min, bbox_max = self.bounding_box_corners()
         center = (bbox_min + bbox_max) / 2.0
-        new_pos = pg.Vector(*center)
+        new_pos = Vector(*center)
         bounding_box_diagonal = np.linalg.norm(bbox_max - bbox_min)
         fov_rad = np.radians(field_of_view)
         camera_distance = (bounding_box_diagonal / 2.0) / np.tan(fov_rad / 2.0) * distance_factor
@@ -533,18 +512,16 @@ class GLGridAxis(GLGraphicsItem):
             return
         self._last_view = [azimuth, elevation]
 
-        # hide by default
-        for grid in self.grid.values():
+        for grid in self._grid:
             grid.hide()
-        for label in self.axes.values():
-            label.hide()
+        for axis in self._axes:
+            axis.hide()
 
-        # Show items based on visibility configuration
-        for grid in self.grid.values():
+        for grid in self._grid:
             if grid.is_visible(azimuth, elevation):
                 grid.show()
 
-        for axis in self.axes.values():
+        for axis in self._axes:
             if axis.is_visible(azimuth, elevation):
                 axis.show()
                 axis.elevate(elevation)
