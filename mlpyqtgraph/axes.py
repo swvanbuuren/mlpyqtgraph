@@ -5,6 +5,7 @@ import math
 from pyqtgraph.Qt import QtCore
 import pyqtgraph as pg
 import pyqtgraph.opengl as gl
+from pyqtgraph.opengl.GLGraphicsItem import GLGraphicsItem
 import pyqtgraph.functions as fn
 import OpenGL.GL as ogl
 import numpy as np
@@ -13,7 +14,6 @@ from mlpyqtgraph.config import options
 from mlpyqtgraph import colors
 from mlpyqtgraph.grid_axes import GLGridAxis
 from mlpyqtgraph.utils.ticklabels import coord_generator, limit_generator
-from mlpyqtgraph.utils.GLSurfacePlotItem import GLSurfacePlotItem
 
 
 class RootException(Exception):
@@ -275,11 +275,11 @@ class Axis2D(pg.PlotItem):  # noqa: PLR0904
         """ Closes the axis """
 
 
-class Axis3D(gl.GLGraphicsItem.GLGraphicsItem):
+class Axis3D(GLGraphicsItem):
     """ 3D axis """
 
     def __init__(self, index, parentItem=None, **kwargs):
-        super().__init__(parentItem=parentItem, **kwargs)
+        super().__init__(parentItem=parentItem)
         self.index = index
         self.grid_axes = GLGridAxis(parentItem=self)
         self.default_surface_options = {
@@ -294,11 +294,6 @@ class Axis3D(gl.GLGraphicsItem.GLGraphicsItem):
             'antialias': options.get_option('antialiasing'),
             'width': 1,
         }
-
-    def _setView(self, v):
-        super()._setView(v)
-        for child in self.childItems():
-            child._setView(v)
 
     @staticmethod
     def set_colormap(surface, colormap='CET-L10'):
@@ -323,7 +318,7 @@ class Axis3D(gl.GLGraphicsItem.GLGraphicsItem):
         coords = ('x', 'y', 'z')
         for idx, arg in enumerate(args):
             kwargs[coords[idx]] = arg
-        surface = GLSurfacePlotItem(**kwargs)
+        surface = gl.GLSurfacePlotItem(**kwargs)
         self.view().addItem(surface)
         self.set_colormap(surface, colormap=kwargs['colormap'])
         self.set_projection_method(*args, method=kwargs['projection'])
