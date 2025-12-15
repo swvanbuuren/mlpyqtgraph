@@ -98,7 +98,7 @@ class GLGridPlane(GLGraphicsItem):
             setattr(self, key, value)
         vertices, faces = self.backplane_face()
         self.mesh.setMeshData(vertexes=vertices, faces=faces)
-        self.lineplot.setData(pos=self._get_all_grid_lines())
+        self.lineplot.setData(pos=self._collect_grid_line_segments())
         self.update()
 
     def is_visible(self, azimuth, elevation):
@@ -107,7 +107,7 @@ class GLGridPlane(GLGraphicsItem):
             self.azimuth_range, azimuth, self.elevation_range, elevation
         )
 
-    def grid_positions(self):
+    def _grid_positions(self):
         """Create a grid positions in the specified plane.
 
         Parameters:
@@ -135,13 +135,8 @@ class GLGridPlane(GLGraphicsItem):
             for y in coord2:
                 yield np.array([[lim1[0], y, offset], [lim1[1], y, offset]])
 
-    def _get_all_grid_lines(self):
-        """Collect all grid line segments into a single flattened array.
-        
-        Returns a (N, 3) array where consecutive pairs of points form line segments.
-        """
-        if lines := list(self.grid_positions()):
-            # Concatenate all line segments: (N_lines*2, 3)
+    def _collect_grid_line_segments(self):
+        if lines := list(self._grid_positions()):
             return np.vstack(lines).astype(np.float32)
         return np.empty((0, 3), dtype=np.float32)
 
@@ -213,7 +208,7 @@ class GLAxis(GLGraphicsItem):
 
     def __init__(self, parentItem=None, **kwargs):
         super().__init__(parentItem=parentItem)
-        self.coords = (0, 1), (0, 1)
+        self.coords = (0, 1)
         self.ax_limits = (-0.05, 1.05)
         self.limits = (-0.05, 1.05), (-0.05, 1.05)
         self.axis = 'xm'
@@ -417,51 +412,28 @@ class GLGridAxis(GLGraphicsItem):
 
     def __init__(self, parentItem=None, **kwargs):
         super().__init__(parentItem=parentItem)
-        self.coords = {
-            'x': [-1.0, 0.0, 1.0],
-            'y': [-1.0, 0.0, 1.0],
-            'z': [-1.0, 0.0, 1.0],
-        }
-        self.limits = {
-            'x': (-1.05, 1.05),
-            'y': (-1.05, 1.05),
-            'z': (-1.05, 1.05),
-        }
-        self._grid = []
-        self._axes = []
+        self.coords = {axis: [-1.0, 0.0, 1.0] for axis in 'xyz'}
+        self.limits = {axis: [-1.05, 1.05] for axis in 'xyz'}
         self._last_view = [0.0, 0.0]
+        self._grid = [
+            GLGridPlane(
+                parentItem=self,
+                plane=plane,
+                azimuth_range=azimuth_range,
+                elevation_range=elevation_range,
+            )
+            for plane, _, _, azimuth_range, elevation_range in self.grid_configs
+        ]
+        self._axes = [
+            GLAxis(
+                parentItem=self,
+                axis=axis+edge,
+                azimuth_range=azimuth_range,
+                elevates=elevates,
+            )
+            for axis, edge, _, _, azimuth_range, elevates in self.axis_configs
+        ]
         self.setData(**kwargs)
-
-    def grid_generator(self):
-        """ yields the grid planes with their parameters """
-        for idx, (plane, coord1, coord2, azimuth_range, elevation_range) in enumerate(self.grid_configs):
-            yield {
-                'plane': plane,
-                'offset': self.limits[plane][idx % 2],
-                'coords': [self.coords[coord1], self.coords[coord2]],
-                'limits': [self.limits[coord1], self.limits[coord2]],
-                'azimuth_range': azimuth_range,
-                'elevation_range': elevation_range,
-            }
-
-    def label_generator(self):
-        """ yields the axis labels with their parameters """
-        for axis, edge, coord1, coord2, azimuth_range, elevates in self.axis_configs:
-            yield {
-                'axis': axis + edge,
-                'ax_limits': self.limits[axis],
-                'coords': self.coords[axis],
-                'limits': [self.limits[coord1], self.limits[coord2]],
-                'azimuth_range': azimuth_range,
-                'elevates': elevates,
-            }
-
-    def _update_container(self, container: list, generator, item_class):
-        for idx, data in enumerate(generator()):
-            if idx < len(container):
-                container[idx].setData(**data)
-            else:
-                container.append(item_class(parentItem=self, **data))
 
     def setData(self, **kwargs):
         """ Update the axis labels """
@@ -471,8 +443,20 @@ class GLGridAxis(GLGraphicsItem):
                 raise ValueError(f'Invalid keyword argument: {k} (allowed arguments are {args})')
         for key, value in kwargs.items():
             setattr(self, key, value)
-        self._update_container(self._grid, self.grid_generator, GLGridPlane)
-        self._update_container(self._axes, self.label_generator, GLAxis)
+        for idx, grid in enumerate(self._grid):
+            plane, coord1, coord2, _, _ = self.grid_configs[idx]
+            grid.setData(
+                offset=self.limits[plane][idx % 2],
+                coords=[self.coords[coord1], self.coords[coord2]],
+                limits=[self.limits[coord1], self.limits[coord2]],
+            )
+        for idx, axis in enumerate(self._axes):
+            axis_char, _, coord1, coord2, _, _ = self.axis_configs[idx]
+            axis.setData(
+                ax_limits=self.limits[axis_char],
+                coords=self.coords[axis_char],
+                limits=[self.limits[coord1], self.limits[coord2]],
+            )
         self.update()
 
     def bounding_box_corners(self):
