@@ -1,5 +1,6 @@
 """ 3D GridAxis classes """
 
+from dataclasses import dataclass
 import numpy as np
 from pyqtgraph import QtGui, QtCore, Vector
 from pyqtgraph.opengl.GLGraphicsItem import GLGraphicsItem
@@ -179,22 +180,28 @@ class GLGridPlane(GLGraphicsItem):
         raise ValueError('Invalid plane')
 
 
+@dataclass(frozen=True)
+class AxisSpec:
+    axis: int                         # varying axis: 0=x, 1=y, 2=z
+    fixed_axes: tuple[int, int]       # global axis indices
+    faces: tuple[int, int]            # -1=min, +1=max for each fixed axis
+
 class GLAxis(GLGraphicsItem):
     """ Axis with ticks and labels in 3D space """
     line_options = dict(color=(0, 0, 0, 1), antialias=True, width=1)
-    offset_map = {
-        'xm':  (0, -1, 0),
-        'xp':  (0, +1, 0),
-        'ym':  (-1, 0, 0),
-        'yp':  (+1, 0, 0),
-        'zrmm': (0, -1, 0),
-        'zrmp': (-1, 0, 0),
-        'zrpm': (+1, 0, 0),
-        'zrpp': (0, +1, 0),
-        'zlmm': (+1, 0, 0),
-        'zlmp': (0, -1, 0),
-        'zlpm': (0, +1, 0),
-        'zlpp': (-1, 0, 0),
+    axis_specs = {
+        'xm':   AxisSpec(0, (1, 2), (-1, -1)),
+        'xp':   AxisSpec(0, (1, 2), (+1, -1)),
+        'ym':   AxisSpec(1, (0, 2), (-1, -1)),
+        'yp':   AxisSpec(1, (0, 2), (+1, -1)),
+        'zrmm': AxisSpec(2, (0, 1), (-1, -1)),
+        'zrmp': AxisSpec(2, (0, 1), (-1, +1)),
+        'zrpm': AxisSpec(2, (0, 1), (+1, -1)),
+        'zrpp': AxisSpec(2, (0, 1), (+1, +1)),
+        'zlmm': AxisSpec(2, (0, 1), (+1, +1)),
+        'zlmp': AxisSpec(2, (0, 1), (+1, -1)),
+        'zlpm': AxisSpec(2, (0, 1), (-1, +1)),
+        'zlpp': AxisSpec(2, (0, 1), (-1, -1)),
     }
     align_left = QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter
     align_right = QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter
@@ -243,27 +250,19 @@ class GLAxis(GLGraphicsItem):
         return check_visibility(self.azimuth_range, azimuth)
 
     def move_up(self):
-        """ Move the labels up """
-        if not self._is_bottom:
-            return
-        self._move_axis_z(self.limits[1][1])
-        self._is_bottom = False
+        if self._is_bottom:
+            self._move_axis_z(self.limits[1][1])
+            self._is_bottom = False
 
     def move_down(self):
-        """ Move the labels down """
-        if self._is_bottom:
-            return
-        self._move_axis_z(self.limits[1][0])
-        self._is_bottom = True
+        if not self._is_bottom:
+            self._move_axis_z(self.limits[1][0])
+            self._is_bottom = True
 
     def elevate(self, elevation):
-        """ Raise or lower the axis labels based on elevation """
         if not self.elevates:
             return
-        if elevation < 0.0:
-            self.move_up()
-        else:
-            self.move_down()
+        (self.move_up if elevation < 0 else self.move_down)()
 
     def alignment(self):
         """Return text alignment based on axis orientation."""
@@ -274,46 +273,55 @@ class GLAxis(GLGraphicsItem):
             if axis.startswith(prefix):
                 return flipped if suffix_is_mp else normal
 
-        raise ValueError(f'Invalid axis: {axis}')
-
     def tick_offset(self):
-        """Scalar offset used for tick marks."""
-        (l1a, l1b), (l2a, l2b) = self.limits
         a0, a1 = self.ax_limits
-        return self.offset_factor * ((a1 - a0) + (l1b - l1a) + (l2b - l2a))
+        return self.offset_factor * (
+            (a1 - a0) + sum(hi - lo for lo, hi in self.limits)
+        )
 
     def axis_coordinates(self, coord):
-        """Return base coordinate for given axis and scalar coord."""
-        lim1, lim2 = self.limits
+        spec = self.axis_specs[self._axis_key()]
+        pos = np.zeros(3, dtype=float)
 
-        axis_map = {
-            'xm':   (coord, lim1[0], lim2[0]),
-            'xp':   (coord, lim1[1], lim2[0]),
-            'ym':   (lim1[0], coord, lim2[0]),
-            'yp':   (lim1[1], coord, lim2[0]),
-            'zrmm': (lim1[0], lim2[0], coord),
-            'zrmp': (lim1[0], lim2[1], coord),
-            'zrpm': (lim1[1], lim2[0], coord),
-            'zrpp': (lim1[1], lim2[1], coord),
-            'zlmm': (lim1[1], lim2[1], coord),
-            'zlmp': (lim1[1], lim2[0], coord),
-            'zlpm': (lim1[0], lim2[1], coord),
-            'zlpp': (lim1[0], lim2[0], coord),
-        }
+        pos[spec.axis] = coord
 
-        return np.asarray(axis_map[self._axis_key()], dtype=float)
+        for (fixed_axis, face), (lo, hi) in zip(
+            zip(spec.fixed_axes, spec.faces),
+            self.limits
+        ):
+            pos[fixed_axis] = lo if face < 0 else hi
+
+        return pos
+
+    def _tick_delta(self):
+        spec = self.axis_specs[self._axis_key()]
+
+        if spec.axis == 0:          # X axis → tick in Y
+            tick_axis = 1
+        elif spec.axis == 1:        # Y axis → tick in X
+            tick_axis = 0
+        else:                       # Z axis
+            x_face, y_face = spec.faces
+
+            if self.axis.startswith('zr'):
+                tick_axis = 1 if x_face == y_face else 0
+            else:  # zl
+                tick_axis = 0 if x_face == y_face else 1
+
+        delta = np.zeros(3)
+        for axis, face in zip(spec.fixed_axes, spec.faces):
+            if axis == tick_axis:
+                delta[tick_axis] = face
+                break
+
+        return delta
 
     def tick_coordinates(self, coord):
         base = self.axis_coordinates(coord)
-        delta = self.tick_offset()*np.asarray(self.offset_map[self._axis_key()])
-        return np.vstack([base, base + delta])
+        return np.vstack([base, base + self.tick_offset() * self._tick_delta()])
 
     def axis_line_coordinates(self):
-        start, end = self.ax_limits
-        return np.vstack([
-            self.axis_coordinates(start),
-            self.axis_coordinates(end),
-        ])
+        return np.vstack([self.axis_coordinates(x) for x in self.ax_limits])
 
     def create_labels(self):
         """Orphans old labels and yield new ones."""
@@ -337,7 +345,7 @@ class GLAxis(GLGraphicsItem):
 
     def _axis_key(self):
         """Key used for offset & alignment (direction only)."""
-        return self.axis if self.axis in self.offset_map else self.axis[:2]
+        return self.axis if self.axis in self.axis_specs else self.axis[:2]
 
     def _yield_line_segments(self, z=None):
         for coord in self.coords:
