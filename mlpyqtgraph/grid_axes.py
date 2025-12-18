@@ -185,31 +185,27 @@ class AxisSpec:
     axis: int                         # varying axis: 0=x, 1=y, 2=z
     fixed_axes: tuple[int, int]       # global axis indices
     faces: tuple[int, int]            # -1=min, +1=max for each fixed axis
+    tick_axis: int                    # axis along which ticks extend
+    label_side: int                   # 0=align left, 1=align right
 
 class GLAxis(GLGraphicsItem):
     """ Axis with ticks and labels in 3D space """
     line_options = dict(color=(0, 0, 0, 1), antialias=True, width=1)
+    sides = (QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter,
+            QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
     axis_specs = {
-        'xm':   AxisSpec(0, (1, 2), (-1, -1)),
-        'xp':   AxisSpec(0, (1, 2), (+1, -1)),
-        'ym':   AxisSpec(1, (0, 2), (-1, -1)),
-        'yp':   AxisSpec(1, (0, 2), (+1, -1)),
-        'zrmm': AxisSpec(2, (0, 1), (-1, -1)),
-        'zrmp': AxisSpec(2, (0, 1), (-1, +1)),
-        'zrpm': AxisSpec(2, (0, 1), (+1, -1)),
-        'zrpp': AxisSpec(2, (0, 1), (+1, +1)),
-        'zlmm': AxisSpec(2, (0, 1), (+1, +1)),
-        'zlmp': AxisSpec(2, (0, 1), (+1, -1)),
-        'zlpm': AxisSpec(2, (0, 1), (-1, +1)),
-        'zlpp': AxisSpec(2, (0, 1), (-1, -1)),
-    }
-    align_left = QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter
-    align_right = QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter
-    alignment_by_axis_prefix = {
-        'x':  (align_left, align_right),
-        'y':  (align_right, align_left),
-        'zr': (align_left, align_left),
-        'zl': (align_right, align_right),
+        'xm':   AxisSpec(0, (1, 2), (-1, -1), 1, 0),
+        'xp':   AxisSpec(0, (1, 2), (+1, -1), 1, 0),
+        'ym':   AxisSpec(1, (0, 2), (-1, -1), 0, 1),
+        'yp':   AxisSpec(1, (0, 2), (+1, -1), 0, 1),
+        'zrmm': AxisSpec(2, (0, 1), (-1, -1), 1, 0),
+        'zrmp': AxisSpec(2, (0, 1), (-1, +1), 0, 0),
+        'zrpm': AxisSpec(2, (0, 1), (+1, -1), 0, 0),
+        'zrpp': AxisSpec(2, (0, 1), (+1, +1), 1, 0),
+        'zlmm': AxisSpec(2, (0, 1), (+1, +1), 0, 1),
+        'zlmp': AxisSpec(2, (0, 1), (+1, -1), 1, 1),
+        'zlpm': AxisSpec(2, (0, 1), (-1, +1), 1, 1),
+        'zlpp': AxisSpec(2, (0, 1), (-1, -1), 0, 1),
     }
     offset_factor = 0.02
 
@@ -265,13 +261,12 @@ class GLAxis(GLGraphicsItem):
         (self.move_up if elevation < 0 else self.move_down)()
 
     def alignment(self):
-        """Return text alignment based on axis orientation."""
-        axis = self.axis
-        suffix_is_mp = axis.endswith(('mp', 'pm'))
-
-        for prefix, (normal, flipped) in self.alignment_by_axis_prefix.items():
-            if axis.startswith(prefix):
-                return flipped if suffix_is_mp else normal
+        spec = self.axis_specs[self._axis_key()]
+        return (
+            self.sides[spec.label_side ^ 1]
+            if self.axis.endswith(('mp', 'pm')) and spec.axis in (0, 1)
+            else self.sides[spec.label_side ]
+        )
 
     def tick_offset(self):
         a0, a1 = self.ax_limits
@@ -295,25 +290,9 @@ class GLAxis(GLGraphicsItem):
 
     def _tick_delta(self):
         spec = self.axis_specs[self._axis_key()]
-
-        if spec.axis == 0:          # X axis → tick in Y
-            tick_axis = 1
-        elif spec.axis == 1:        # Y axis → tick in X
-            tick_axis = 0
-        else:                       # Z axis
-            x_face, y_face = spec.faces
-
-            if self.axis.startswith('zr'):
-                tick_axis = 1 if x_face == y_face else 0
-            else:  # zl
-                tick_axis = 0 if x_face == y_face else 1
-
         delta = np.zeros(3)
-        for axis, face in zip(spec.fixed_axes, spec.faces):
-            if axis == tick_axis:
-                delta[tick_axis] = face
-                break
-
+        idx = spec.fixed_axes.index(spec.tick_axis)
+        delta[spec.tick_axis] = spec.faces[idx]
         return delta
 
     def tick_coordinates(self, coord):
