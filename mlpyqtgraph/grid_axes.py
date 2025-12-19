@@ -1,6 +1,5 @@
-""" 3D GridAxis classes """
+""" 3D GridAxis with grid planes, axes, ticks and labels """
 
-from dataclasses import dataclass
 import numpy as np
 from pyqtgraph import QtGui, QtCore, Vector
 from pyqtgraph.opengl.GLGraphicsItem import GLGraphicsItem
@@ -180,14 +179,6 @@ class GLGridPlane(GLGraphicsItem):
         raise ValueError('Invalid plane')
 
 
-@dataclass(frozen=True)
-class AxisSpec:
-    axis: int                         # varying axis: 0=x, 1=y, 2=z
-    fixed_axes: tuple[int, int]       # global axis indices
-    faces: tuple[int, int]            # -1=min, +1=max for each fixed axis
-    tick_axis: int                    # axis along which ticks extend
-    label_side: int                   # 0=align left, 1=align right
-
 class GLAxis(GLGraphicsItem):
     """ Axis with ticks and labels in 3D space """
     line_options = dict(color=(0, 0, 0, 1), antialias=True, width=1)
@@ -195,24 +186,6 @@ class GLAxis(GLGraphicsItem):
         QtCore.Qt.AlignmentFlag.AlignLeft | QtCore.Qt.AlignmentFlag.AlignVCenter,
         QtCore.Qt.AlignmentFlag.AlignRight | QtCore.Qt.AlignmentFlag.AlignVCenter
     )
-    axis_specs = {
-        'xmm':  AxisSpec(0, (1, 2), (-1, -1), 1, 0),
-        'xmp':  AxisSpec(0, (1, 2), (-1, -1), 1, 1),
-        'xpm':  AxisSpec(0, (1, 2), (+1, -1), 1, 1),
-        'xpp':  AxisSpec(0, (1, 2), (+1, -1), 1, 0),
-        'ymm':  AxisSpec(1, (0, 2), (-1, -1), 0, 1),
-        'ymp':  AxisSpec(1, (0, 2), (-1, -1), 0, 0),
-        'ypm':  AxisSpec(1, (0, 2), (+1, -1), 0, 0),
-        'ypp':  AxisSpec(1, (0, 2), (+1, -1), 0, 1),
-        'zrmm': AxisSpec(2, (0, 1), (-1, -1), 1, 0),
-        'zrmp': AxisSpec(2, (0, 1), (-1, +1), 0, 0),
-        'zrpm': AxisSpec(2, (0, 1), (+1, -1), 0, 0),
-        'zrpp': AxisSpec(2, (0, 1), (+1, +1), 1, 0),
-        'zlmm': AxisSpec(2, (0, 1), (+1, +1), 0, 1),
-        'zlmp': AxisSpec(2, (0, 1), (+1, -1), 1, 1),
-        'zlpm': AxisSpec(2, (0, 1), (-1, +1), 1, 1),
-        'zlpp': AxisSpec(2, (0, 1), (-1, -1), 0, 1),
-    }
     offset_factor = 0.02
 
     def __init__(self, parentItem=None, **kwargs):
@@ -221,7 +194,10 @@ class GLAxis(GLGraphicsItem):
         self.coords = (0, 1)
         self.ax_limits = (-0.05, 1.05)
         self.limits = (-0.05, 1.05), (-0.05, 1.05)
-        self.axis = 'xm'
+        self.axis = 0
+        self.faces = (-1, -1)
+        self.tick_axis = 1
+        self.label_side = 0
         self.font = QtGui.QFont('Helvetica', 10)
         self.color = (0, 0, 0, 255)
         self.azimuth_range: tuple | None = None
@@ -237,7 +213,8 @@ class GLAxis(GLGraphicsItem):
 
     def setData(self, **kwargs):
         """ Update the axis labels """
-        args = ('coords', 'ax_limits', 'limits', 'axis', 'font', 'color', 'azimuth_range', 'elevates')
+        args = ('coords', 'ax_limits', 'limits', 'axis', 'faces', 'tick_axis',
+                'label_side', 'font', 'color', 'azimuth_range', 'elevates')
         for k in kwargs.keys():
             if k not in args:
                 raise ValueError(f'Invalid keyword argument: {k} (allowed arguments are {args})')
@@ -267,8 +244,7 @@ class GLAxis(GLGraphicsItem):
         (self.move_up if elevation < 0 else self.move_down)()
 
     def alignment(self):
-        spec = self.axis_specs[self.axis]
-        return self.sides[spec.label_side ]
+        return self.sides[self.label_side ]
 
     def tick_offset(self):
         a0, a1 = self.ax_limits
@@ -276,24 +252,22 @@ class GLAxis(GLGraphicsItem):
             (a1 - a0) + sum(hi - lo for lo, hi in self.limits)
         )
 
+    def fixed_axes(self):
+        return (x for x in range(3) if x != self.axis)
+
     def axis_coordinates(self, coord):
-        spec = self.axis_specs[self.axis]
         pos = np.zeros(3, dtype=float)
-
-        pos[spec.axis] = coord
-
+        pos[self.axis] = coord
         for fixed_axis, face, (lo, hi) in zip(
-            spec.fixed_axes, spec.faces, self.limits
+            self.fixed_axes(), self.faces, self.limits
         ):
             pos[fixed_axis] = lo if face < 0 else hi
-
         return pos
 
     def tick_delta(self):
-        spec = self.axis_specs[self.axis]
         delta = np.zeros(3)
-        idx = spec.fixed_axes.index(spec.tick_axis)
-        delta[spec.tick_axis] = spec.faces[idx]
+        idx = tuple(self.fixed_axes()).index(self.tick_axis)
+        delta[self.tick_axis] = self.faces[idx]
         return delta
 
     def tick_coordinates(self, coord):
@@ -347,30 +321,30 @@ class GLGridAxis(GLGraphicsItem):
     """ Draw a grid with axes, ticks and labels in 3D space for given
     coordinates and limits """
     grid_configs = (
-        ('x', 'y', 'z', (270.0, 450.0), None),
-        ('x', 'y', 'z', (90.0, 270.0), None),
-        ('y', 'x', 'z', (0.0, 180.0), None),
-        ('y', 'x', 'z', (180.0, 360.0), None),
-        ('z', 'x', 'y', None, (0.0, 90.0)),
-        ('z', 'x', 'y', None, (-90.0, 0.0)),
+        ('x', (270.0, 450.0), None),
+        ('x', (90.0, 270.0), None),
+        ('y', (0.0, 180.0), None),
+        ('y', (180.0, 360.0), None),
+        ('z', None, (0.0, 90.0)),
+        ('z', None, (-90.0, 0.0)),
     )
     axis_configs = (
-        ('x', 'mm', 'y', 'z', (180.0, 270.0), True),
-        ('x', 'mp', 'y', 'z', (270.0, 360.0), True),
-        ('x', 'pm', 'y', 'z', (90.0, 180.0), True),
-        ('x', 'pp', 'y', 'z', (0.0, 90.0), True),
-        ('y', 'mm', 'x', 'z', (180.0, 270.0), True),
-        ('y', 'pm', 'x', 'z', (270.0, 360.0), True),
-        ('y', 'mp', 'x', 'z', (90.0, 180.0), True),
-        ('y', 'pp', 'x', 'z', (0.0, 90.0), True),
-        ('z', 'rmm', 'x', 'y', (135.0, 180.0), False),
-        ('z', 'rmp', 'x', 'y', (45.0, 90.0), False),
-        ('z', 'rpm', 'x', 'y', (215.0, 270.0), False),
-        ('z', 'rpp', 'x', 'y', (315.0, 360.0), False),
-        ('z', 'lmm', 'x', 'y', (90.0, 135.0), False),
-        ('z', 'lmp', 'x', 'y', (0.0, 45.0), False),
-        ('z', 'lpm', 'x', 'y', (180.0, 215.0), False),
-        ('z', 'lpp', 'x', 'y', (270.0, 315.0), False),
+        ('x', (-1, -1), 1, 0, (180.0, 270.0), True),
+        ('x', (-1, -1), 1, 1, (270.0, 360.0), True),
+        ('x', (+1, -1), 1, 1, (90.0, 180.0), True),
+        ('x', (+1, -1), 1, 0, (0.0, 90.0), True),
+        ('y', (-1, -1), 0, 1, (180.0, 270.0), True),
+        ('y', (-1, -1), 0, 0, (90.0, 180.0), True),
+        ('y', (+1, -1), 0, 0, (270.0, 360.0), True),
+        ('y', (+1, -1), 0, 1, (0.0, 90.0), True),
+        ('z', (-1, -1), 1, 0, (135.0, 180.0), False),
+        ('z', (-1, +1), 0, 0, (45.0, 90.0), False),
+        ('z', (+1, -1), 0, 0, (215.0, 270.0), False),
+        ('z', (+1, +1), 1, 0, (315.0, 360.0), False),
+        ('z', (+1, +1), 0, 1, (90.0, 135.0), False),
+        ('z', (+1, -1), 1, 1, (0.0, 45.0), False),
+        ('z', (-1, +1), 1, 1, (180.0, 215.0), False),
+        ('z', (-1, -1), 0, 1, (270.0, 315.0), False),
     )
 
     def __init__(self, parentItem=None, **kwargs):
@@ -385,16 +359,19 @@ class GLGridAxis(GLGraphicsItem):
                 azimuth_range=azimuth_range,
                 elevation_range=elevation_range,
             )
-            for plane, _, _, azimuth_range, elevation_range in self.grid_configs
+            for plane, azimuth_range, elevation_range in self.grid_configs
         ]
         self._axes = [
             GLAxis(
                 parentItem=self,
-                axis=axis+edge,
+                axis='xyz'.index(axis),
+                faces=faces,
+                tick_axis=tick_axis,
+                label_side=label_side,
                 azimuth_range=azimuth_range,
                 elevates=elevates,
             )
-            for axis, edge, _, _, azimuth_range, elevates in self.axis_configs
+            for axis, faces, tick_axis, label_side, azimuth_range, elevates in self.axis_configs
         ]
         self.setData(**kwargs)
 
@@ -407,14 +384,16 @@ class GLGridAxis(GLGraphicsItem):
         for key, value in kwargs.items():
             setattr(self, key, value)
         for idx, grid in enumerate(self._grid):
-            plane, coord1, coord2, _, _ = self.grid_configs[idx]
+            plane, _, _ = self.grid_configs[idx]
+            coord1, coord2 = self._get_coords(plane)
             grid.setData(
                 offset=self.limits[plane][idx % 2],
                 coords=[self.coords[coord1], self.coords[coord2]],
                 limits=[self.limits[coord1], self.limits[coord2]],
             )
         for idx, axis in enumerate(self._axes):
-            axis_char, _, coord1, coord2, _, _ = self.axis_configs[idx]
+            axis_char, _, _, _, _, _ = self.axis_configs[idx]
+            coord1, coord2 = self._get_coords(axis_char)
             axis.setData(
                 ax_limits=self.limits[axis_char],
                 coords=self.coords[axis_char],
@@ -472,3 +451,7 @@ class GLGridAxis(GLGraphicsItem):
             if axis.is_visible(azimuth, elevation):
                 axis.show()
                 axis.elevate(elevation)
+
+    @staticmethod
+    def _get_coords(axis):
+        return (c for c in 'xyz' if c != axis)
