@@ -191,13 +191,19 @@ class AxisSpec:
 class GLAxis(GLGraphicsItem):
     """ Axis with ticks and labels in 3D space """
     line_options = dict(color=(0, 0, 0, 1), antialias=True, width=1)
-    sides = (QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter,
-            QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
+    sides = (
+        QtCore.Qt.AlignmentFlag.AlignLeft | QtCore.Qt.AlignmentFlag.AlignVCenter,
+        QtCore.Qt.AlignmentFlag.AlignRight | QtCore.Qt.AlignmentFlag.AlignVCenter
+    )
     axis_specs = {
-        'xm':   AxisSpec(0, (1, 2), (-1, -1), 1, 0),
-        'xp':   AxisSpec(0, (1, 2), (+1, -1), 1, 0),
-        'ym':   AxisSpec(1, (0, 2), (-1, -1), 0, 1),
-        'yp':   AxisSpec(1, (0, 2), (+1, -1), 0, 1),
+        'xmm':  AxisSpec(0, (1, 2), (-1, -1), 1, 0),
+        'xmp':  AxisSpec(0, (1, 2), (-1, -1), 1, 1),
+        'xpm':  AxisSpec(0, (1, 2), (+1, -1), 1, 1),
+        'xpp':  AxisSpec(0, (1, 2), (+1, -1), 1, 0),
+        'ymm':  AxisSpec(1, (0, 2), (-1, -1), 0, 1),
+        'ymp':  AxisSpec(1, (0, 2), (-1, -1), 0, 0),
+        'ypm':  AxisSpec(1, (0, 2), (+1, -1), 0, 0),
+        'ypp':  AxisSpec(1, (0, 2), (+1, -1), 0, 1),
         'zrmm': AxisSpec(2, (0, 1), (-1, -1), 1, 0),
         'zrmp': AxisSpec(2, (0, 1), (-1, +1), 0, 0),
         'zrpm': AxisSpec(2, (0, 1), (+1, -1), 0, 0),
@@ -261,12 +267,8 @@ class GLAxis(GLGraphicsItem):
         (self.move_up if elevation < 0 else self.move_down)()
 
     def alignment(self):
-        spec = self.axis_specs[self._axis_key()]
-        return (
-            self.sides[spec.label_side ^ 1]
-            if self.axis.endswith(('mp', 'pm')) and spec.axis in (0, 1)
-            else self.sides[spec.label_side ]
-        )
+        spec = self.axis_specs[self.axis]
+        return self.sides[spec.label_side ]
 
     def tick_offset(self):
         a0, a1 = self.ax_limits
@@ -275,21 +277,20 @@ class GLAxis(GLGraphicsItem):
         )
 
     def axis_coordinates(self, coord):
-        spec = self.axis_specs[self._axis_key()]
+        spec = self.axis_specs[self.axis]
         pos = np.zeros(3, dtype=float)
 
         pos[spec.axis] = coord
 
-        for (fixed_axis, face), (lo, hi) in zip(
-            zip(spec.fixed_axes, spec.faces),
-            self.limits
+        for fixed_axis, face, (lo, hi) in zip(
+            spec.fixed_axes, spec.faces, self.limits
         ):
             pos[fixed_axis] = lo if face < 0 else hi
 
         return pos
 
-    def _tick_delta(self):
-        spec = self.axis_specs[self._axis_key()]
+    def tick_delta(self):
+        spec = self.axis_specs[self.axis]
         delta = np.zeros(3)
         idx = spec.fixed_axes.index(spec.tick_axis)
         delta[spec.tick_axis] = spec.faces[idx]
@@ -297,7 +298,7 @@ class GLAxis(GLGraphicsItem):
 
     def tick_coordinates(self, coord):
         base = self.axis_coordinates(coord)
-        return np.vstack([base, base + self.tick_offset() * self._tick_delta()])
+        return np.vstack([base, base + self.tick_offset() * self.tick_delta()])
 
     def axis_line_coordinates(self):
         return np.vstack([self.axis_coordinates(x) for x in self.ax_limits])
@@ -322,14 +323,10 @@ class GLAxis(GLGraphicsItem):
             return np.vstack(segments).astype(np.float32)
         return np.empty((0, 3), np.float32)
 
-    def _axis_key(self):
-        """Key used for offset & alignment (direction only)."""
-        return self.axis if self.axis in self.axis_specs else self.axis[:2]
-
     def _yield_line_segments(self, z=None):
         for coord in self.coords:
             segment = self.tick_coordinates(coord)
-            segment[1] -= 0.5 * (segment[1] - segment[0])
+            segment[1] = 0.5 * (segment[0] + segment[1])
             if z is not None:
                 segment[:, 2] = z
             yield segment
