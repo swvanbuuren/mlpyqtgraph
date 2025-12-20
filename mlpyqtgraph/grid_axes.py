@@ -39,6 +39,11 @@ def check_visibility(azimuth_range, azimuth, elevation_range=None, elevation=Non
     return True
 
 
+def other_axes(axis):
+    """Return the two axes other than the given one."""
+    return [i for i in range(3) if i != axis]
+
+
 class GLGridPlane(GLGraphicsItem):
     """ Grid plane in 3D space """
 
@@ -57,7 +62,7 @@ class GLGridPlane(GLGraphicsItem):
     def __init__(self, parentItem=None, **kwargs):
         super().__init__(parentItem=parentItem)
         self.items = []
-        self.plane = 'x'
+        self.axis = 0
         self.offset = 0.0
         self.coords = (0, 1), (0, 1)
         self.limits = (-0.05, 1.05), (-0.05, 1.05)
@@ -78,8 +83,7 @@ class GLGridPlane(GLGraphicsItem):
         ====================  ==================================================
         **Arguments:**
         ------------------------------------------------------------------------
-        plane                 'x', 'y', or 'z', specifies in which plane the
-                              grid lies
+        axis                  int indicating the grid plan axis 0: x, 1: y, 2: z
         offset                the offset along the axis orthogonal to the plane
         coords                tuples with the coordinates for the first and
                               second axis and the grid
@@ -89,15 +93,14 @@ class GLGridPlane(GLGraphicsItem):
         elevation_range       tuple (min, max) or list of tuples for visibility
         ====================  ==================================================
         """
-        args = ('plane', 'offset', 'coords', 'limits', 'azimuth_range', 'elevation_range')
+        args = ('axis', 'offset', 'coords', 'limits', 'azimuth_range', 'elevation_range')
         for k in kwargs.keys():
             if k not in args:
                 raise ValueError(f'Invalid keyword argument: {k} (allowed arguments are {args})')
         for key, value in kwargs.items():
             setattr(self, key, value)
-        vertices, faces = self._backplane_face()
-        self.mesh.setMeshData(vertexes=vertices, faces=faces)
-        self.lineplot.setData(pos=self._collect_grid_line_segments())
+        self.mesh.setMeshData(**dict(self._backplane_face()))
+        self.lineplot.setData(pos=self._line_segments_positions())
         self.update()
 
     def is_visible(self, azimuth, elevation):
@@ -107,76 +110,34 @@ class GLGridPlane(GLGraphicsItem):
         )
 
     def _grid_positions(self):
-        """Create a grid positions in the specified plane.
+        """Create grid positions in the specified plane."""
+        axes = other_axes(self.axis)
+        
+        for idx, coord in enumerate(self.coords):
+            for c in coord:
+                p1, p2 = [0.0, 0.0, 0.0], [0.0, 0.0, 0.0]
+                p1[self.axis] = p2[self.axis] = self.offset
+                p1[axes[idx]] = p2[axes[idx]] = c
+                p1[axes[1 - idx]], p2[axes[1 - idx]] = self.limits[1 - idx]
+                yield np.array([p1, p2])
 
-        Parameters:
-        - plane: 'x', 'y', or 'z', specifies in which plane the grid lies.
-        - offset: the offset along the axis orthogonal to the plane.
-        - coord1: coordinates for the first axis of the grid.
-        - coord2: coordinates for the second axis of the grid.
-        """
-        coord1, coord2 = self.coords
-        lim1, lim2 = self.limits
-        plane, offset = self.plane, self.offset
-        if plane == 'x':
-            for y in coord1:
-                yield np.array([[offset, y, lim2[0]], [offset, y, lim2[1]]])
-            for z in coord2:
-                yield np.array([[offset, lim1[0], z], [offset, lim1[1], z]])
-        elif plane == 'y':
-            for x in coord1:
-                yield np.array([[x, offset, lim2[0]], [x, offset, lim2[1]]])
-            for z in coord2:
-                yield np.array([[lim1[0], offset, z], [lim1[1], offset, z]])
-        elif plane == 'z':
-            for x in coord1:
-                yield np.array([[x, lim2[0], offset], [x, lim2[1], offset]])
-            for y in coord2:
-                yield np.array([[lim1[0], y, offset], [lim1[1], y, offset]])
-
-    def _collect_grid_line_segments(self):
+    def _line_segments_positions(self):
         if lines := list(self._grid_positions()):
             return np.vstack(lines).astype(np.float32)
         return np.empty((0, 3), dtype=np.float32)
 
     def _backplane_face(self):
-        """Create a backplane face in the specified plane.
-
-        Parameters:
-        - plane: 'x', 'y', or 'z', specifies in which plane the grid lies.
-        - offset: the offset along the axis orthogonal to the plane.
-        - coord1: coordinates for the first axis of the grid.
-        - coord2: coordinates for the second axis of the grid.
-        """
-        plane = self.plane
-        offset = self.offset
+        """Create a backplane face in the specified plane."""
+        axes = other_axes(self.axis)
         lim1, lim2 = self.limits
-        faces = np.array([[0, 1, 2], [0, 2, 3]])
-        if plane == 'x':
-            vertices = np.array([
-                [offset, lim1[0], lim2[0]],
-                [offset, lim1[1], lim2[0]],
-                [offset, lim1[1], lim2[1]],
-                [offset, lim1[0], lim2[1]],
-            ])
-            return vertices, faces
-        if plane == 'y':
-            vertices = np.array([
-                [lim1[0], offset, lim2[0]],
-                [lim1[1], offset, lim2[0]],
-                [lim1[1], offset, lim2[1]],
-                [lim1[0], offset, lim2[1]],
-            ])
-            return vertices, faces
-        if plane == 'z':
-            vertices = np.array([
-                [lim1[0], lim2[0], offset],
-                [lim1[1], lim2[0], offset],
-                [lim1[1], lim2[1], offset],
-                [lim1[0], lim2[1], offset],
-            ])
-            return vertices, faces
-        raise ValueError('Invalid plane')
+        
+        vertices = np.zeros((4, 3))
+        vertices[:, self.axis] = self.offset
+        vertices[:, axes[0]] = [lim1[0], lim1[1], lim1[1], lim1[0]]
+        vertices[:, axes[1]] = [lim2[0], lim2[0], lim2[1], lim2[1]]
+
+        yield 'vertexes', vertices
+        yield 'faces', np.array([[0, 1, 2], [0, 2, 3]])
 
 
 class GLAxis(GLGraphicsItem):
@@ -243,45 +204,36 @@ class GLAxis(GLGraphicsItem):
             return
         (self.move_up if elevation < 0 else self.move_down)()
 
-    def alignment(self):
-        return self.sides[self.label_side ]
-
     def tick_offset(self):
         a0, a1 = self.ax_limits
         return self.offset_factor * (
             (a1 - a0) + sum(hi - lo for lo, hi in self.limits)
         )
 
-    def fixed_axes(self):
-        return (x for x in range(3) if x != self.axis)
-
     def axis_coordinates(self, coord):
         pos = np.zeros(3, dtype=float)
         pos[self.axis] = coord
         for fixed_axis, face, (lo, hi) in zip(
-            self.fixed_axes(), self.faces, self.limits
+            other_axes(self.axis), self.faces, self.limits
         ):
             pos[fixed_axis] = lo if face < 0 else hi
         return pos
 
     def tick_delta(self):
         delta = np.zeros(3)
-        idx = tuple(self.fixed_axes()).index(self.tick_axis)
+        idx = other_axes(self.axis).index(self.tick_axis)
         delta[self.tick_axis] = self.faces[idx]
         return delta
 
     def tick_coordinates(self, coord):
         base = self.axis_coordinates(coord)
-        return np.vstack([base, base + self.tick_offset() * self.tick_delta()])
-
-    def axis_line_coordinates(self):
-        return np.vstack([self.axis_coordinates(x) for x in self.ax_limits])
+        return np.vstack([base, base + self.tick_offset()*self.tick_delta()])
 
     def create_labels(self):
         """Orphans old labels and yield new ones."""
         for label in self._labels:
             label.setParentItem(None)
-        alignment = self.alignment()
+        alignment = self.sides[self.label_side]
         for coord in self.coords:
             yield GLTextItem(
                 parentItem=self,
@@ -305,7 +257,7 @@ class GLAxis(GLGraphicsItem):
                 segment[:, 2] = z
             yield segment
         
-        axis = self.axis_line_coordinates()
+        axis = np.vstack([self.axis_coordinates(x) for x in self.ax_limits])
         if z is not None:
             axis[:, 2] = z
         yield axis
@@ -321,30 +273,30 @@ class GLGridAxis(GLGraphicsItem):
     """ Draw a grid with axes, ticks and labels in 3D space for given
     coordinates and limits """
     grid_configs = (
-        ('x', (270.0, 450.0), None),
-        ('x', (90.0, 270.0), None),
-        ('y', (0.0, 180.0), None),
-        ('y', (180.0, 360.0), None),
-        ('z', None, (0.0, 90.0)),
-        ('z', None, (-90.0, 0.0)),
+        (0, (270.0, 450.0), None),
+        (0, (90.0, 270.0), None),
+        (1, (0.0, 180.0), None),
+        (1, (180.0, 360.0), None),
+        (2, None, (0.0, 90.0)),
+        (2, None, (-90.0, 0.0)),
     )
     axis_configs = (
-        ('x', (-1, -1), 1, 0, (180.0, 270.0), True),
-        ('x', (-1, -1), 1, 1, (270.0, 360.0), True),
-        ('x', (+1, -1), 1, 1, (90.0, 180.0), True),
-        ('x', (+1, -1), 1, 0, (0.0, 90.0), True),
-        ('y', (-1, -1), 0, 1, (180.0, 270.0), True),
-        ('y', (-1, -1), 0, 0, (90.0, 180.0), True),
-        ('y', (+1, -1), 0, 0, (270.0, 360.0), True),
-        ('y', (+1, -1), 0, 1, (0.0, 90.0), True),
-        ('z', (-1, -1), 1, 0, (135.0, 180.0), False),
-        ('z', (-1, +1), 0, 0, (45.0, 90.0), False),
-        ('z', (+1, -1), 0, 0, (215.0, 270.0), False),
-        ('z', (+1, +1), 1, 0, (315.0, 360.0), False),
-        ('z', (+1, +1), 0, 1, (90.0, 135.0), False),
-        ('z', (+1, -1), 1, 1, (0.0, 45.0), False),
-        ('z', (-1, +1), 1, 1, (180.0, 215.0), False),
-        ('z', (-1, -1), 0, 1, (270.0, 315.0), False),
+        (0, (-1, -1), 1, 0, (180.0, 270.0), True),
+        (0, (-1, -1), 1, 1, (270.0, 360.0), True),
+        (0, (+1, -1), 1, 1, (90.0, 180.0), True),
+        (0, (+1, -1), 1, 0, (0.0, 90.0), True),
+        (1, (-1, -1), 0, 1, (180.0, 270.0), True),
+        (1, (-1, -1), 0, 0, (90.0, 180.0), True),
+        (1, (+1, -1), 0, 0, (270.0, 360.0), True),
+        (1, (+1, -1), 0, 1, (0.0, 90.0), True),
+        (2, (-1, -1), 1, 0, (135.0, 180.0), False),
+        (2, (-1, +1), 0, 0, (45.0, 90.0), False),
+        (2, (+1, -1), 0, 0, (215.0, 270.0), False),
+        (2, (+1, +1), 1, 0, (315.0, 360.0), False),
+        (2, (+1, +1), 0, 1, (90.0, 135.0), False),
+        (2, (+1, -1), 1, 1, (0.0, 45.0), False),
+        (2, (-1, +1), 1, 1, (180.0, 215.0), False),
+        (2, (-1, -1), 0, 1, (270.0, 315.0), False),
     )
 
     def __init__(self, parentItem=None, **kwargs):
@@ -355,16 +307,16 @@ class GLGridAxis(GLGraphicsItem):
         self._grid = [
             GLGridPlane(
                 parentItem=self,
-                plane=plane,
+                axis=axis,  # 'xyz'.index(axis),
                 azimuth_range=azimuth_range,
                 elevation_range=elevation_range,
             )
-            for plane, azimuth_range, elevation_range in self.grid_configs
+            for axis, azimuth_range, elevation_range in self.grid_configs
         ]
         self._axes = [
             GLAxis(
                 parentItem=self,
-                axis='xyz'.index(axis),
+                axis=axis,  #'xyz'.index(axis),
                 faces=faces,
                 tick_axis=tick_axis,
                 label_side=label_side,
@@ -384,19 +336,19 @@ class GLGridAxis(GLGraphicsItem):
         for key, value in kwargs.items():
             setattr(self, key, value)
         for idx, grid in enumerate(self._grid):
-            plane, _, _ = self.grid_configs[idx]
-            coord1, coord2 = self._get_coords(plane)
+            axis, _, _ = self.grid_configs[idx]
+            coord1, coord2 = ('xyz'[i] for i in other_axes(axis))
             grid.setData(
-                offset=self.limits[plane][idx % 2],
+                offset=self.limits['xyz'[axis]][idx % 2],
                 coords=[self.coords[coord1], self.coords[coord2]],
                 limits=[self.limits[coord1], self.limits[coord2]],
             )
         for idx, axis in enumerate(self._axes):
-            axis_char, _, _, _, _, _ = self.axis_configs[idx]
-            coord1, coord2 = self._get_coords(axis_char)
+            axis_int, _, _, _, _, _ = self.axis_configs[idx]
+            coord1, coord2 = ('xyz'[i] for i in other_axes(axis_int))
             axis.setData(
-                ax_limits=self.limits[axis_char],
-                coords=self.coords[axis_char],
+                ax_limits=self.limits['xyz'[axis_int]],
+                coords=self.coords['xyz'[axis_int]],
                 limits=[self.limits[coord1], self.limits[coord2]],
             )
         self.update()
@@ -451,7 +403,3 @@ class GLGridAxis(GLGraphicsItem):
             if axis.is_visible(azimuth, elevation):
                 axis.show()
                 axis.elevate(elevation)
-
-    @staticmethod
-    def _get_coords(axis):
-        return (c for c in 'xyz' if c != axis)
