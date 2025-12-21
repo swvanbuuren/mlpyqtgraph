@@ -1,6 +1,7 @@
 """ 3D GridAxis with grid planes, axes, ticks and labels """
 
 import numpy as np
+import pyqtgraph as pg
 from pyqtgraph import QtGui, QtCore, Vector
 from pyqtgraph.opengl.GLGraphicsItem import GLGraphicsItem
 from pyqtgraph.opengl import GLLinePlotItem, GLMeshItem, GLTextItem
@@ -8,10 +9,7 @@ from pyqtgraph.opengl import GLLinePlotItem, GLMeshItem, GLTextItem
 
 def check_visibility(azimuth_range, azimuth, elevation_range=None, elevation=None):
     """Check if item should be visible based on camera angles.
-    
-    Handles azimuth ranges that may wrap around 360 degrees.
-    For example, (270, 450) covers both 270-360 and 0-90.
-    
+
     Args:
         azimuth_range: tuple (min, max) or None
         elevation_range: tuple (min, max) or None
@@ -21,17 +19,13 @@ def check_visibility(azimuth_range, azimuth, elevation_range=None, elevation=Non
     Returns:
         bool: True if visible, False otherwise
     """
-    if azimuth_range is not None:
+    if azimuth_range:
         min_az, max_az = azimuth_range
-        if max_az > 360:
-            azimuth_extended = azimuth + 360 if azimuth < min_az % 360 else azimuth
-            if not (min_az <= azimuth_extended < max_az):
-                return False
-        else:
-            if not (min_az <= azimuth < max_az):
-                return False
+        az = azimuth + 360 if max_az > 360 and azimuth < min_az % 360 else azimuth
+        if not (min_az <= az < max_az):
+            return False
     
-    if elevation_range is not None:
+    if elevation_range:
         min_el, max_el = elevation_range
         if not (min_el <= elevation < max_el):
             return False
@@ -47,33 +41,25 @@ def other_axes(axis):
 class GLGridPlane(GLGraphicsItem):
     """ Grid plane in 3D space """
 
-    surface_options = {
-        'color': (0.95, 0.95, 0.95, 1),
-        'smooth': True,
-        'projection': 'perspective',
-    }
-
-    line_options = {
-        'color': (0.7, 0.7, 0.7, 1),
-        'antialias': True,
-        'width': 1,
-    }
-
     def __init__(self, parentItem=None, **kwargs):
         super().__init__(parentItem=parentItem)
-        self.items = []
         self.axis = 0
         self.offset = 0.0
         self.coords = (0, 1), (0, 1)
         self.limits = (-0.05, 1.05), (-0.05, 1.05)
+        white_bg = pg.getConfigOption('background') == 'w'
+        self.face_color = (0.95, 0.95, 0.95, 1) if white_bg else (0.05, 0.05, 0.05, 1)
+        self.line_color = (0.7, 0.7, 0.7, 1) if white_bg else (0.3, 0.3, 0.3, 1)
+        self.line_antialias = True
+        self.line_width = 1.0
         self.azimuth_range: tuple | None = None
         self.elevation_range: tuple | None = None
 
-        self.lineplot = GLLinePlotItem(parentItem=self, mode='lines', **self.line_options)
-        self.lineplot.setDepthValue(self.depthValue() + 1)
+        self._lineplot = GLLinePlotItem(parentItem=self, mode='lines')
+        self._lineplot.setDepthValue(self.depthValue() + 1)
         self.setParentItem(parentItem)
 
-        self.mesh = GLMeshItem(parentItem=self, **self.surface_options)
+        self._mesh = GLMeshItem(parentItem=self)
 
         self.setData(**kwargs)
 
@@ -89,18 +75,31 @@ class GLGridPlane(GLGraphicsItem):
                               second axis and the grid
         limits                tuples with the limits for the first and
                               second axis and the grid
+        face_color            RGBA tuple for the grid plane surface color
+        line_color            RGBA tuple for the grid lines color
+        line_antialias        boolean indicating if grid lines are antialiased
+        line_width            float indicating the grid lines width
         azimuth_range         tuple (min, max) or list of tuples for visibility
         elevation_range       tuple (min, max) or list of tuples for visibility
         ====================  ==================================================
         """
-        args = ('axis', 'offset', 'coords', 'limits', 'azimuth_range', 'elevation_range')
+        args = ('axis', 'offset', 'coords', 'limits', 'face_color',
+                'line_color', 'line_antialias', 'line_width', 'azimuth_range', 
+                'elevation_range')
         for k in kwargs.keys():
             if k not in args:
                 raise ValueError(f'Invalid keyword argument: {k} (allowed arguments are {args})')
         for key, value in kwargs.items():
             setattr(self, key, value)
-        self.mesh.setMeshData(**dict(self._backplane_face()))
-        self.lineplot.setData(pos=self._line_segments_positions())
+        self._mesh.setMeshData(
+            **dict(self._backplane_face()), color=self.face_color
+        )
+        self._lineplot.setData(
+            pos=self._line_segments_positions(),
+            color=self.line_color,
+            antialias=self.line_antialias,
+            width=self.line_width,
+        )
         self.update()
 
     def is_visible(self, azimuth, elevation):
@@ -142,7 +141,6 @@ class GLGridPlane(GLGraphicsItem):
 
 class GLAxis(GLGraphicsItem):
     """ Axis with ticks and labels in 3D space """
-    line_options = dict(color=(0, 0, 0, 1), antialias=True, width=1)
     sides = (
         QtCore.Qt.AlignmentFlag.AlignLeft | QtCore.Qt.AlignmentFlag.AlignVCenter,
         QtCore.Qt.AlignmentFlag.AlignRight | QtCore.Qt.AlignmentFlag.AlignVCenter
@@ -151,7 +149,6 @@ class GLAxis(GLGraphicsItem):
 
     def __init__(self, parentItem=None, **kwargs):
         super().__init__(parentItem=parentItem)
-
         self.coords = (0, 1)
         self.ax_limits = (-0.05, 1.05)
         self.limits = (-0.05, 1.05), (-0.05, 1.05)
@@ -160,29 +157,59 @@ class GLAxis(GLGraphicsItem):
         self.tick_axis = 1
         self.label_side = 0
         self.font = QtGui.QFont('Helvetica', 10)
-        self.color = (0, 0, 0, 255)
+        black_fg = pg.getConfigOption('foreground') == 'k'
+        self.label_color = (0, 0, 0, 255) if black_fg else (220, 220, 220, 255)
+        self.line_color = (0, 0, 0, 1) if black_fg else (1, 1, 1, 1)
+        self.line_antialias = True
+        self.line_width = 1.0
         self.azimuth_range: tuple | None = None
         self.elevates: bool = True
 
         self._is_bottom = True
         self._labels = []
-
-        self.lineplot = GLLinePlotItem(parentItem=self, mode='lines', **self.line_options)
-        self.lineplot.setDepthValue(self.depthValue() + 1)
+        self._lineplot = GLLinePlotItem(parentItem=self, mode='lines')
+        self._lineplot.setDepthValue(self.depthValue() + 1)
 
         self.setData(**kwargs)
 
     def setData(self, **kwargs):
-        """ Update the axis labels """
+        """ Update the axis labels
+        ====================  ==================================================
+        **Arguments:**
+        ------------------------------------------------------------------------
+        coords                tuple with the coordinates for the axis ticks
+        ax_limits             tuple with the axis limits
+        limits                tuples with the limits for the other two axes
+        axis                  int indicating the axis 0: x, 1: y, 2
+        faces                 tuple with the faces for the other two axes
+        tick_axis             int indicating which axis the ticks point to
+        label_side            int indicating the side of the labels 0: low, 1:
+                              high
+        font                  QFont for the labels
+        label_color           RGBA tuple for the labels and axis line color
+        line_color            RGBA tuple for the axis line color
+        line_antialias        boolean indicating if axis line is antialiased
+        line_width            float indicating the axis line width
+        azimuth_range         tuple (min, max) or list of tuples for visibility
+        elevates              boolean indicating if axis moves up/down with
+                              elevation
+        ====================  ==================================================
+        """
         args = ('coords', 'ax_limits', 'limits', 'axis', 'faces', 'tick_axis',
-                'label_side', 'font', 'color', 'azimuth_range', 'elevates')
+                'label_side', 'font', 'label_color', 'line_color',
+                'line_antialias', 'line_width', 'azimuth_range', 'elevates')
         for k in kwargs.keys():
             if k not in args:
                 raise ValueError(f'Invalid keyword argument: {k} (allowed arguments are {args})')
         for key, value in kwargs.items():
             setattr(self, key, value)
-        self._labels = list(self.create_labels())
-        self.lineplot.setData(pos=self.build_line_segments())
+        self.update_labels()
+        self._lineplot.setData(
+            pos=self.build_line_segments(),
+            color=self.line_color,
+            antialias=self.line_antialias,
+            width=self.line_width,
+        )
         self.update()
 
     def is_visible(self, azimuth, elevation):
@@ -229,20 +256,33 @@ class GLAxis(GLGraphicsItem):
         base = self.axis_coordinates(coord)
         return np.vstack([base, base + self.tick_offset()*self.tick_delta()])
 
-    def create_labels(self):
-        """Orphans old labels and yield new ones."""
-        for label in self._labels:
-            label.setParentItem(None)
+    def update_labels(self):
+        """Update existing labels or create new ones as needed."""
         alignment = self.sides[self.label_side]
-        for coord in self.coords:
-            yield GLTextItem(
-                parentItem=self,
-                pos=self.tick_coordinates(coord)[1],
-                text=f'{coord:.1f}',
-                color=self.color,
-                font=self.font,
-                alignment=alignment,
-            )
+        for index, coord in enumerate(self.coords):
+            pos = self.tick_coordinates(coord)[1]
+            text = f'{coord:.1f}'
+            if index < len(self._labels):
+                self._labels[index].setData(
+                    pos=pos,
+                    text=text,
+                    color=self.label_color,
+                    alignment=alignment
+                )
+            else:
+                self._labels.append(GLTextItem(
+                    parentItem=self,
+                    pos=pos,
+                    text=text,
+                    color=self.label_color,
+                    font=self.font,
+                    alignment=alignment,
+                ))
+        
+        num_needed = len(self.coords)
+        for label in self._labels[num_needed:]:
+            label.setParentItem(None)
+        self._labels = self._labels[:num_needed]
 
     def build_line_segments(self, z=None):
         if segments := list(self._yield_line_segments(z)):
@@ -266,19 +306,19 @@ class GLAxis(GLGraphicsItem):
         for label in self._labels:
             x, y, _ = label.pos
             label.setData(pos=(x, y, z))
-        self.lineplot.setData(pos=self.build_line_segments(z))
+        self._lineplot.setData(pos=self.build_line_segments(z))
 
 
 class GLGridAxis(GLGraphicsItem):
     """ Draw a grid with axes, ticks and labels in 3D space for given
     coordinates and limits """
     grid_configs = (
-        (0, (270.0, 450.0), None),
-        (0, (90.0, 270.0), None),
-        (1, (0.0, 180.0), None),
-        (1, (180.0, 360.0), None),
-        (2, None, (0.0, 90.0)),
-        (2, None, (-90.0, 0.0)),
+        (0, 0, (270.0, 450.0), None),
+        (0, 1, (90.0, 270.0), None),
+        (1, 0, (0.0, 180.0), None),
+        (1, 1, (180.0, 360.0), None),
+        (2, 0, None, (0.0, 90.0)),
+        (2, 1, None, (-90.0, 0.0)),
     )
     axis_configs = (
         (0, (-1, -1), 1, 0, (180.0, 270.0), True),
@@ -311,7 +351,7 @@ class GLGridAxis(GLGraphicsItem):
                 azimuth_range=azimuth_range,
                 elevation_range=elevation_range,
             )
-            for axis, azimuth_range, elevation_range in self.grid_configs
+            for axis, _, azimuth_range, elevation_range in self.grid_configs
         ]
         self._axes = [
             GLAxis(
@@ -335,16 +375,16 @@ class GLGridAxis(GLGraphicsItem):
                 raise ValueError(f'Invalid keyword argument: {k} (allowed arguments are {args})')
         for key, value in kwargs.items():
             setattr(self, key, value)
-        for idx, grid in enumerate(self._grid):
-            axis, _, _ = self.grid_configs[idx]
+        for grid, config in zip(self._grid, self.grid_configs):
+            axis, offset_side = config[:2]
             coord1, coord2 = ('xyz'[i] for i in other_axes(axis))
             grid.setData(
-                offset=self.limits['xyz'[axis]][idx % 2],
+                offset=self.limits['xyz'[axis]][offset_side],
                 coords=[self.coords[coord1], self.coords[coord2]],
                 limits=[self.limits[coord1], self.limits[coord2]],
             )
-        for idx, axis in enumerate(self._axes):
-            axis_int, _, _, _, _, _ = self.axis_configs[idx]
+        for axis, config in zip(self._axes, self.axis_configs):
+            axis_int = config[0]
             coord1, coord2 = ('xyz'[i] for i in other_axes(axis_int))
             axis.setData(
                 ax_limits=self.limits['xyz'[axis_int]],
@@ -392,14 +432,11 @@ class GLGridAxis(GLGraphicsItem):
 
         for grid in self._grid:
             grid.hide()
-        for axis in self._axes:
-            axis.hide()
-
-        for grid in self._grid:
             if grid.is_visible(azimuth, elevation):
                 grid.show()
 
         for axis in self._axes:
+            axis.hide()
             if axis.is_visible(azimuth, elevation):
                 axis.show()
                 axis.elevate(elevation)

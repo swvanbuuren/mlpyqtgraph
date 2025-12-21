@@ -3,17 +3,17 @@
 import pyqtgraph as pg
 import pyqtgraph.opengl as gl
 from pyqtgraph.Qt import mkQApp, QtCore
-from mlpyqtgraph.axes import Axis3D
 from mlpyqtgraph.grid_axes import GLGridAxis
+from mlpyqtgraph.config import options
 
 
 def main():
     """Run the GLGraphicsItem remove/add example."""
+    options.set_options(black_on_white=False)
+
     mkQApp("Removal Example")
 
     w = gl.GLViewWidget()
-    w.setWindowTitle('GL')
-    w.setGeometry(0, 110, 800, 600)
     w.show()
 
     # Create our custom item
@@ -23,13 +23,13 @@ def main():
     lim=10.0
     new_coords = {
         'x': [-lim, 0.0, lim],
-        'y': [-lim, 0.0, lim],
-        'z': [-lim, 0.0, lim],
+        'y': [-lim, 0.0, 0.75*lim],
+        'z': [-1.5*lim, 0.0, lim],
     }
     new_limits = {
-        'x': (-1.05*lim, 1.05*lim),
-        'y': (-1.05*lim, 1.05*lim),
-        'z': (-1.05*lim, 1.05*lim),
+        'x': (1.05*new_coords['x'][0], 1.05*new_coords['x'][-1]),
+        'y': (1.05*new_coords['y'][0], 1.05*new_coords['y'][-1]),
+        'z': (1.05*new_coords['z'][0], 1.05*new_coords['z'][-1]),
     }
 
     def change():
