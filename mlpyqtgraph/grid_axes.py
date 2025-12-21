@@ -312,7 +312,7 @@ class GLAxis(GLGraphicsItem):
 class GLGridAxis(GLGraphicsItem):
     """ Draw a grid with axes, ticks and labels in 3D space for given
     coordinates and limits """
-    grid_configs = (
+    grid_plane_config = (
         (0, 0, (270.0, 450.0), None),
         (0, 1, (90.0, 270.0), None),
         (1, 0, (0.0, 180.0), None),
@@ -320,7 +320,7 @@ class GLGridAxis(GLGraphicsItem):
         (2, 0, None, (0.0, 90.0)),
         (2, 1, None, (-90.0, 0.0)),
     )
-    axis_configs = (
+    axis_config = (
         (0, (-1, -1), 1, 0, (180.0, 270.0), True),
         (0, (-1, -1), 1, 1, (270.0, 360.0), True),
         (0, (+1, -1), 1, 1, (90.0, 180.0), True),
@@ -351,7 +351,7 @@ class GLGridAxis(GLGraphicsItem):
                 azimuth_range=azimuth_range,
                 elevation_range=elevation_range,
             )
-            for axis, _, azimuth_range, elevation_range in self.grid_configs
+            for axis, _, azimuth_range, elevation_range in self.grid_plane_config
         ]
         self._axes = [
             GLAxis(
@@ -363,19 +363,27 @@ class GLGridAxis(GLGraphicsItem):
                 azimuth_range=azimuth_range,
                 elevates=elevates,
             )
-            for axis, faces, tick_axis, label_side, azimuth_range, elevates in self.axis_configs
+            for axis, faces, tick_axis, label_side, azimuth_range, elevates in self.axis_config
         ]
         self.setData(**kwargs)
 
     def setData(self, **kwargs):
-        """ Update the axis labels """
+        """Update the grid axis
+
+        ====================  ==================================================
+        **Arguments:**
+        ------------------------------------------------------------------------
+        coords                dict with the coordinates for the 'x', 'y', 'z'
+        limits                dict with the limits for the 'x', 'y', 'z'
+        ====================  ==================================================
+        """
         args = ('coords', 'limits')
         for k in kwargs.keys():
             if k not in args:
                 raise ValueError(f'Invalid keyword argument: {k} (allowed arguments are {args})')
         for key, value in kwargs.items():
             setattr(self, key, value)
-        for grid, config in zip(self._grid, self.grid_configs):
+        for grid, config in zip(self._grid, self.grid_plane_config):
             axis, offset_side = config[:2]
             coord1, coord2 = ('xyz'[i] for i in other_axes(axis))
             grid.setData(
@@ -383,7 +391,7 @@ class GLGridAxis(GLGraphicsItem):
                 coords=[self.coords[coord1], self.coords[coord2]],
                 limits=[self.limits[coord1], self.limits[coord2]],
             )
-        for axis, config in zip(self._axes, self.axis_configs):
+        for axis, config in zip(self._axes, self.axis_config):
             axis_int = config[0]
             coord1, coord2 = ('xyz'[i] for i in other_axes(axis_int))
             axis.setData(
