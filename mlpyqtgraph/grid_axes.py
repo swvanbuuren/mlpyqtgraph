@@ -150,6 +150,7 @@ class GLAxis(GLGraphicsItem):
     def __init__(self, parentItem=None, **kwargs):
         super().__init__(parentItem=parentItem)
         self.coords = (0, 1)
+        self.coords_labels = self.coords
         self.ax_limits = (-0.05, 1.05)
         self.limits = (-0.05, 1.05), (-0.05, 1.05)
         self.axis = 0
@@ -178,6 +179,7 @@ class GLAxis(GLGraphicsItem):
         **Arguments:**
         ------------------------------------------------------------------------
         coords                tuple with the coordinates for the axis ticks
+        coords_labels         tuple with the axis tick labels
         ax_limits             tuple with the axis limits
         limits                tuples with the limits for the other two axes
         axis                  int indicating the axis 0: x, 1: y, 2
@@ -195,9 +197,10 @@ class GLAxis(GLGraphicsItem):
                               elevation
         ====================  ==================================================
         """
-        args = ('coords', 'ax_limits', 'limits', 'axis', 'faces', 'tick_axis',
-                'label_side', 'font', 'label_color', 'line_color',
-                'line_antialias', 'line_width', 'azimuth_range', 'elevates')
+        args = ('coords', 'coords_labels', 'ax_limits', 'limits', 'axis',
+                'faces', 'tick_axis', 'label_side', 'font', 'label_color',
+                'line_color', 'line_antialias', 'line_width', 'azimuth_range',
+                'elevates')
         for k in kwargs.keys():
             if k not in args:
                 raise ValueError(f'Invalid keyword argument: {k} (allowed arguments are {args})')
@@ -259,9 +262,11 @@ class GLAxis(GLGraphicsItem):
     def update_labels(self):
         """Update existing labels or create new ones as needed."""
         alignment = self.sides[self.label_side]
-        for index, coord in enumerate(self.coords):
+        if len(self.coords) != len(self.coords_labels):
+            raise ValueError("coords and coords_labels must have the same length.")
+        for index, (coord, label) in enumerate(zip(self.coords, self.coords_labels)):
             pos = self.tick_coordinates(coord)[1]
-            text = f'{coord:.1f}'
+            text = f'{label:.1f}'
             if index < len(self._labels):
                 self._labels[index].setData(
                     pos=pos,
@@ -342,6 +347,7 @@ class GLGridAxis(GLGraphicsItem):
     def __init__(self, parentItem=None, **kwargs):
         super().__init__(parentItem=parentItem)
         self.coords = {axis: [-1.0, 0.0, 1.0] for axis in 'xyz'}
+        self.coords_labels = self.coords
         self.limits = {axis: [-1.05, 1.05] for axis in 'xyz'}
         self._last_view = [0.0, 0.0]
         self._grid = [
@@ -374,10 +380,11 @@ class GLGridAxis(GLGraphicsItem):
         **Arguments:**
         ------------------------------------------------------------------------
         coords                dict with the coordinates for the 'x', 'y', 'z'
+        coords_labels         dict with the axis tick labels for 'x', 'y', 'z'
         limits                dict with the limits for the 'x', 'y', 'z'
         ====================  ==================================================
         """
-        args = ('coords', 'limits')
+        args = ('coords', 'coords_labels', 'limits')
         for k in kwargs.keys():
             if k not in args:
                 raise ValueError(f'Invalid keyword argument: {k} (allowed arguments are {args})')
@@ -397,6 +404,7 @@ class GLGridAxis(GLGraphicsItem):
             axis.setData(
                 ax_limits=self.limits['xyz'[axis_int]],
                 coords=self.coords['xyz'[axis_int]],
+                coords_labels=self.coords_labels['xyz'[axis_int]],
                 limits=[self.limits[coord1], self.limits[coord2]],
             )
         self.update()

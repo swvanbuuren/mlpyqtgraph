@@ -9,7 +9,7 @@ from mlpyqtgraph.config import options
 
 def main():
     """Run the GLGraphicsItem remove/add example."""
-    options.set_options(black_on_white=False)
+    options.set_options(black_on_white=True)
 
     mkQApp("Removal Example")
 
@@ -24,7 +24,12 @@ def main():
     new_coords = {
         'x': [-lim, 0.0, lim],
         'y': [-lim, 0.0, 0.75*lim],
-        'z': [-1.5*lim, 0.0, lim],
+        'z': [-lim, -0.5*lim, 0.0, 0.5*lim, lim],
+    }
+    new_coords_labels = {
+        'x': [-lim, 0.0, lim],
+        'y': [-lim, 0.0, 0.75*lim],
+        'z': [-2, -1, 0.0, 1, 2],
     }
     new_limits = {
         'x': (1.05*new_coords['x'][0], 1.05*new_coords['x'][-1]),
@@ -33,7 +38,7 @@ def main():
     }
 
     def change():
-        grid_axes.setData(coords=new_coords, limits=new_limits)
+        grid_axes.setData(coords=new_coords, coords_labels=new_coords_labels, limits=new_limits)
         w.setCameraPosition(**grid_axes.best_camera())
 
     QtCore.QTimer.singleShot(1000, change)
