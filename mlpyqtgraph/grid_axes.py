@@ -86,11 +86,9 @@ class GLGridPlane(GLGraphicsItem):
         args = ('axis', 'offset', 'coords', 'limits', 'face_color',
                 'line_color', 'line_antialias', 'line_width', 'azimuth_range', 
                 'elevation_range')
-        for k in kwargs.keys():
-            if k not in args:
-                raise ValueError(f'Invalid keyword argument: {k} (allowed arguments are {args})')
-        for key, value in kwargs.items():
-            setattr(self, key, value)
+        for arg in args:
+            if arg in kwargs:
+                setattr(self, arg, kwargs[arg])
         self._mesh.setMeshData(
             **dict(self._backplane_face()), color=self.face_color
         )
@@ -201,11 +199,9 @@ class GLAxis(GLGraphicsItem):
                 'faces', 'tick_axis', 'label_side', 'font', 'label_color',
                 'line_color', 'line_antialias', 'line_width', 'azimuth_range',
                 'elevates')
-        for k in kwargs.keys():
-            if k not in args:
-                raise ValueError(f'Invalid keyword argument: {k} (allowed arguments are {args})')
-        for key, value in kwargs.items():
-            setattr(self, key, value)
+        for arg in args:
+            if arg in kwargs:
+                setattr(self, arg, kwargs[arg])
         self.update_labels()
         self._lineplot.setData(
             pos=self.build_line_segments(),
@@ -353,7 +349,7 @@ class GLGridAxis(GLGraphicsItem):
         self._grid = [
             GLGridPlane(
                 parentItem=self,
-                axis=axis,  # 'xyz'.index(axis),
+                axis=axis,
                 azimuth_range=azimuth_range,
                 elevation_range=elevation_range,
             )
@@ -362,7 +358,7 @@ class GLGridAxis(GLGraphicsItem):
         self._axes = [
             GLAxis(
                 parentItem=self,
-                axis=axis,  #'xyz'.index(axis),
+                axis=axis,
                 faces=faces,
                 tick_axis=tick_axis,
                 label_side=label_side,
@@ -385,11 +381,9 @@ class GLGridAxis(GLGraphicsItem):
         ====================  ==================================================
         """
         args = ('coords', 'coords_labels', 'limits')
-        for k in kwargs.keys():
-            if k not in args:
-                raise ValueError(f'Invalid keyword argument: {k} (allowed arguments are {args})')
-        for key, value in kwargs.items():
-            setattr(self, key, value)
+        for arg in args:
+            if arg in kwargs:
+                setattr(self, arg, kwargs.pop(arg))
         for grid, config in zip(self._grid, self.grid_plane_config):
             axis, offset_side = config[:2]
             coord1, coord2 = ('xyz'[i] for i in other_axes(axis))
@@ -397,6 +391,7 @@ class GLGridAxis(GLGraphicsItem):
                 offset=self.limits['xyz'[axis]][offset_side],
                 coords=[self.coords[coord1], self.coords[coord2]],
                 limits=[self.limits[coord1], self.limits[coord2]],
+                **kwargs
             )
         for axis, config in zip(self._axes, self.axis_config):
             axis_int = config[0]
@@ -406,6 +401,7 @@ class GLGridAxis(GLGraphicsItem):
                 coords=self.coords['xyz'[axis_int]],
                 coords_labels=self.coords_labels['xyz'[axis_int]],
                 limits=[self.limits[coord1], self.limits[coord2]],
+                **kwargs
             )
         self.update()
 
