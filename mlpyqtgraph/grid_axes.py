@@ -149,8 +149,8 @@ class GLAxis(GLGraphicsItem):
         super().__init__(parentItem=parentItem)
         self.coords = (0, 1)
         self.coords_labels = self.coords
-        self.ax_limits = (-0.05, 1.05)
-        self.limits = (-0.05, 1.05), (-0.05, 1.05)
+        self.limits = (-0.05, 1.05)
+        self.other_limits = (-0.05, 1.05), (-0.05, 1.05)
         self.axis = 0
         self.faces = (-1, -1)
         self.tick_axis = 1
@@ -178,8 +178,8 @@ class GLAxis(GLGraphicsItem):
         ------------------------------------------------------------------------
         coords                tuple with the coordinates for the axis ticks
         coords_labels         tuple with the axis tick labels
-        ax_limits             tuple with the axis limits
-        limits                tuples with the limits for the other two axes
+        limits             tuple with the axis limits
+        other_limits          tuples with the limits for the other two axes
         axis                  int indicating the axis 0: x, 1: y, 2
         faces                 tuple with the faces for the other two axes
         tick_axis             int indicating which axis the ticks point to
@@ -195,7 +195,7 @@ class GLAxis(GLGraphicsItem):
                               elevation
         ====================  ==================================================
         """
-        args = ('coords', 'coords_labels', 'ax_limits', 'limits', 'axis',
+        args = ('coords', 'coords_labels', 'limits', 'other_limits', 'axis',
                 'faces', 'tick_axis', 'label_side', 'font', 'label_color',
                 'line_color', 'line_antialias', 'line_width', 'azimuth_range',
                 'elevates')
@@ -217,12 +217,12 @@ class GLAxis(GLGraphicsItem):
 
     def move_up(self):
         if self._is_bottom:
-            self._move_axis_z(self.limits[1][1])
+            self._move_axis_z(self.other_limits[1][1])
             self._is_bottom = False
 
     def move_down(self):
         if not self._is_bottom:
-            self._move_axis_z(self.limits[1][0])
+            self._move_axis_z(self.other_limits[1][0])
             self._is_bottom = True
 
     def elevate(self, elevation):
@@ -231,16 +231,16 @@ class GLAxis(GLGraphicsItem):
         (self.move_up if elevation < 0 else self.move_down)()
 
     def tick_offset(self):
-        a0, a1 = self.ax_limits
+        a0, a1 = self.limits
         return self.offset_factor * (
-            (a1 - a0) + sum(hi - lo for lo, hi in self.limits)
+            (a1 - a0) + sum(hi - lo for lo, hi in self.other_limits)
         )
 
     def axis_coordinates(self, coord):
         pos = np.zeros(3, dtype=float)
         pos[self.axis] = coord
         for fixed_axis, face, (lo, hi) in zip(
-            other_axes(self.axis), self.faces, self.limits
+            other_axes(self.axis), self.faces, self.other_limits
         ):
             pos[fixed_axis] = lo if face < 0 else hi
         return pos
@@ -298,7 +298,7 @@ class GLAxis(GLGraphicsItem):
                 segment[:, 2] = z
             yield segment
         
-        axis = np.vstack([self.axis_coordinates(x) for x in self.ax_limits])
+        axis = np.vstack([self.axis_coordinates(x) for x in self.limits])
         if z is not None:
             axis[:, 2] = z
         yield axis
@@ -397,10 +397,10 @@ class GLGridAxis(GLGraphicsItem):
             axis_int = config[0]
             coord1, coord2 = ('xyz'[i] for i in other_axes(axis_int))
             axis.setData(
-                ax_limits=self.limits['xyz'[axis_int]],
                 coords=self.coords['xyz'[axis_int]],
                 coords_labels=self.coords_labels['xyz'[axis_int]],
-                limits=[self.limits[coord1], self.limits[coord2]],
+                limits=self.limits['xyz'[axis_int]],
+                other_limits=[self.limits[coord1], self.limits[coord2]],
                 **kwargs
             )
         self.update()
