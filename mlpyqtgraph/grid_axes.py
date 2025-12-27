@@ -27,7 +27,7 @@ def check_visibility(azimuth_range, azimuth, elevation_range=None, elevation=Non
     
     if elevation_range:
         min_el, max_el = elevation_range
-        if not (min_el <= elevation < max_el):
+        if not (min_el <= elevation <= max_el):
             return False
     
     return True
