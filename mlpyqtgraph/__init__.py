@@ -4,7 +4,7 @@ used as interface
 """
 
 from pqthreads import config as pqthreads_config
-from pqthreads import decorator
+from pqthreads.decorator import DecoratorCore, Decorator
 from mlpyqtgraph import windows
 from mlpyqtgraph import axes
 from mlpyqtgraph import workers
@@ -20,7 +20,7 @@ __version__ = '0.6.3'
 pqthreads_config.params.signal_slot_timeout = 10_000
 
 
-class OptionsDecoratorCore(decorator.DecoratorCore):
+class OptionsDecoratorCore(DecoratorCore):
     """ Decorator take also takes keyword arguments and sets them as config
     options """
 
@@ -32,4 +32,4 @@ class OptionsDecoratorCore(decorator.DecoratorCore):
 
 OptionsDecoratorCore.add_agent('figure', windows.FigureWindow, workers.FigureWorker)
 OptionsDecoratorCore.add_agent('axis',axes.Axis, workers.AxisWorker)
-plotter = decorator.Decorator(OptionsDecoratorCore)
+plotter = Decorator(OptionsDecoratorCore)
