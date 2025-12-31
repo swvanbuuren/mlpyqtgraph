@@ -2,18 +2,18 @@
 
 
 import math
-from pyqtgraph.Qt import QtCore
-import pyqtgraph as pg
-import pyqtgraph.opengl as gl
+from dataclasses import dataclass
+from typing import List
+from pyqtgraph import PlotItem, ColorMap, colormap, QtCore, Point, mkBrush, mkPen
+from pyqtgraph.opengl import GLSurfacePlotItem, GLLinePlotItem, GLViewWidget
 from pyqtgraph.opengl.GLGraphicsItem import GLGraphicsItem
 import pyqtgraph.functions as fn
-import OpenGL.GL as ogl
 import numpy as np
 
 from mlpyqtgraph.config import options
 from mlpyqtgraph import colors
 from mlpyqtgraph.grid_axes import GLGridAxis
-from mlpyqtgraph.utils.ticklabels import coord_generator, limit_generator
+from mlpyqtgraph.utils.ticklabels import coord_generator, limit_generator, coord_transformers
 
 
 class RootException(Exception):
@@ -24,7 +24,7 @@ class InvalidAxis(RootException):
     """ Exception raised for invalid axes """
 
 
-class Axis2D(pg.PlotItem):  # noqa: PLR0904
+class Axis2D(PlotItem):  # noqa: PLR0904
     """ Axis for plots in a given figure layout """
     pen_styles = {'-': QtCore.Qt.SolidLine,
                   '--': QtCore.Qt.DashLine,
@@ -125,13 +125,13 @@ class Axis2D(pg.PlotItem):  # noqa: PLR0904
 
         line_pen = None
         if width > 0:
-            line_pen = pg.mkPen(color, width=width)
+            line_pen = mkPen(color, width=width)
             if style:
                 line_pen.setStyle(self.pen_styles[style])
 
         symbol_pen = None
         if symbol is not None:
-            symbol_pen = pg.mkPen(symbol_color, width=0)
+            symbol_pen = mkPen(symbol_color, width=0)
 
         self.plot(x_coord, y_coord,
                   pen=line_pen, symbol=symbol, symbolSize=symbol_size,
@@ -226,7 +226,7 @@ class Axis2D(pg.PlotItem):  # noqa: PLR0904
 
     def add_legend(self, *legend_labels, offset=(1,1)):
         """ Add legend labels """
-        legend_brush = pg.mkBrush(color=(255, 255, 255, 200))
+        legend_brush = mkBrush(color=(255, 255, 255, 200))
         self.addLegend(brush=legend_brush, verSpacing=-5, offset=offset)
         plot_items = self.listDataItems()
         for label, item in zip(legend_labels, plot_items):
@@ -253,7 +253,7 @@ class Axis2D(pg.PlotItem):  # noqa: PLR0904
         points = list(map(self.mapToDevice, axis_span))
         if None in points:
             return None
-        length_px = pg.Point(points[1] - points[0]).length()
+        length_px = Point(points[1] - points[0]).length()
         if length_px == 0:
             return None
         return length_px
@@ -274,9 +274,24 @@ class Axis2D(pg.PlotItem):  # noqa: PLR0904
     def delete(self):
         """ Closes the axis """
 
+@dataclass
+class Axis3DItem:
+    instance: GLSurfacePlotItem | GLLinePlotItem
+    data: tuple
+    options: dict
+
+
+class ViewNotDefinedError(Exception):
+    """ Raised if view is not defined yet """
 
 class Axis3D(GLGraphicsItem):
     """ 3D axis """
+
+    aspect_ratios = {
+        'auto': (1.0, 1.0, 0.8),
+        'flat': (1.0, 1.0, 0.6),
+        'cube': (1.0, 1.0, 1.0),
+    }
 
     def __init__(self, index, parentItem=None, **kwargs):
         super().__init__(parentItem=parentItem)
@@ -286,7 +301,6 @@ class Axis3D(GLGraphicsItem):
             'color': (0, 0, 0, 1),
             'showGrid': True,
             'lineAntialias': options.get_option('antialiasing'),
-            'projection': options.get_option('projection'),
             'colormap': options.get_option('colormap'),
         }
         self.default_line_options = {
@@ -294,79 +308,127 @@ class Axis3D(GLGraphicsItem):
             'antialias': options.get_option('antialiasing'),
             'width': 1,
         }
+        self._items: List[Axis3DItem] = []
+        self._aspect_ratio = 'auto'
+        self._projection_method = options.get_option('projection')
 
-    @staticmethod
-    def set_colormap(surface, colormap='CET-L10'):
-        """ Assign colormap to surface using surface height """
-        heights = surface._z
-        normalized_heights = (heights - heights.min())/np.ptp(heights)
-        colors = pg.colormap.get(colormap).map(normalized_heights, mode='float')
-        surface._meshdata.setFaceColors(colors)
+    def _get_view(self) -> GLViewWidget:
+        if view := self.view():
+            return view
+        raise ViewNotDefinedError
 
-    def set_projection_method(self, *coords, method='orthographic'):
-        """ Sets the projection method, either perspective or orthographic """
-        object_size = (sum([np.ptp(coord)**3.0 for coord in coords]))**(1.0/3.0)
-        field_of_view = 60
-        if method == 'orthographic':
-            field_of_view = 1
-        distance = 0.75*object_size/math.tan(0.5*field_of_view/180.0*math.pi)
-        self.view().setCameraParams(fov=field_of_view, distance=distance)
+    def _add_item(self, item: GLSurfacePlotItem | GLLinePlotItem, *data, **options):
+        self._items.append(Axis3DItem(item, data, options))
+        self._get_view().addItem(item)
+
+    def update(self):
+        for item in self._items:
+            plot_item = item.instance
+            coord_kwargs = dict(zip('xyz', item.data))
+            coords, coords_labels, limits = self.transform_coordinates(coord_kwargs)
+            if isinstance(plot_item, GLSurfacePlotItem):
+                plot_item.setData(**coord_kwargs)
+                if colormap := item.options.get('colormap'):
+                    self.set_colormap(plot_item, colormap_type=colormap)
+            elif isinstance(plot_item, GLLinePlotItem):
+                points = np.column_stack(list(coord_kwargs.values()))
+                plot_item.setData(pos=points)
+            self.set_projection_method(*coord_kwargs.values())
+            self.grid_axes.setData(coords=coords, coords_labels=coords_labels, limits=limits)
+            self._get_view().setCameraPosition(**self.grid_axes.best_camera(method=self._projection_method))
+        super().update()
 
     def surf(self, *args, **kwargs):
         """ Adds a 3D surface plot item to the view widget  """
         kwargs = dict(self.default_surface_options, **kwargs)
-        coords = ('x', 'y', 'z')
-        for idx, arg in enumerate(args):
-            kwargs[coords[idx]] = arg
-        surface = gl.GLSurfacePlotItem(**kwargs)
-        self.view().addItem(surface)
-        self.set_colormap(surface, colormap=kwargs['colormap'])
-        self.set_projection_method(*args, method=kwargs['projection'])
-        self.update_grid_axes(*args, **kwargs)
-
-    def calculate_ax_coord_lims(self, x, y, z):
-        """ Calculates the axis coordinates limits """
-        coords = dict(coord_generator(x=x, y=y, z=z))
-        limits = dict(limit_generator(limit_ratio=0.05, **coords))
-        return coords, limits
-
-    def update_grid_axes(self, *args, **kwargs):
-        """ Plots the grid axes """
-        coords, limits = self.calculate_ax_coord_lims(*args)
-        self.grid_axes.setData(coords=coords, limits=limits)
-        projection = kwargs.get('projection', 'perspective')
-        self.view().setCameraPosition(**self.grid_axes.best_camera(method=projection))
-
-    def add_line(self, *args, **kwargs):
-        """ Plots a single grid line for given coordinates """
-        points = np.column_stack(args)
-        line = gl.GLLinePlotItem(pos=points, **kwargs)
-        self.view().addItem(line)
+        surface = GLSurfacePlotItem(**kwargs)
+        self._add_item(surface, *args, **kwargs)
+        self.update()
 
     def line(self, *args, **kwargs):
         """ Plots a single grid line for given coordinates """
         kwargs = dict(self.default_line_options, **kwargs)
-        lines_kwargs = dict(kwargs)
-        lines_kwargs.pop('projection')
-        self.add_line(*args, **lines_kwargs)
-        self.set_projection_method(*args, method=kwargs['projection'])
-        self.update_grid_axes(*args, **kwargs)
+        line = GLLinePlotItem(**kwargs)
+        self._add_item(line, *args, **kwargs)
+        self.update()
+
+    def transform_coordinates(self, coord_kwargs):
+        """ Transforms the given coordinates according to fixed coords """
+        coords_labels = dict(coord_generator(**coord_kwargs))
+        if aspect_coords := self._aspect_coords():
+            coords = {}
+            for key, transformer in coord_transformers(coords_labels, aspect_coords):
+                coord_kwargs[key] = transformer(coord_kwargs[key])
+                coords[key] = transformer(coords_labels[key])
+        else:
+            coords = coords_labels
+        limits = dict(limit_generator(limit_ratio=0.05, **coords))
+        return coords, coords_labels, limits
+
+    @staticmethod
+    def set_colormap(surface, colormap_type='CET-L10'):
+        """ Assign colormap to surface using surface height """
+        heights = surface._z
+        normalized_heights = (heights - heights.min())/np.ptp(heights)
+        if current_colormap := colormap.get(colormap_type):
+            colors = current_colormap.map(normalized_heights, mode=ColorMap.FLOAT)
+            surface._meshdata.setFaceColors(colors)
+
+    def set_projection_method(self, *coords):
+        """ Sets the projection method, either perspective or orthographic """
+        object_size = (sum([np.ptp(coord)**3.0 for coord in coords]))**(1.0/3.0)
+        field_of_view = 60
+        if self._projection_method == 'orthographic':
+            field_of_view = 1
+        distance = 0.75*object_size/math.tan(0.5*field_of_view/180.0*math.pi)
+        self._get_view().setCameraParams(fov=field_of_view, distance=distance)
 
     @property
     def azimuth(self):
-        return self.view().cameraParams()['azimuth']
+        return self._get_view().cameraParams()['azimuth']
 
     @azimuth.setter
     def azimuth(self, value):
-        self.view().setCameraParams(azimuth=value)
+        self._get_view().setCameraParams(azimuth=value)
 
     @property
     def elevation(self):
-        return self.view().cameraParams()['elevation']
+        return self._get_view().cameraParams()['elevation']
 
     @elevation.setter
     def elevation(self, value):
-        self.view().setCameraParams(elevation=value)
+        self._get_view().setCameraParams(elevation=value)
+
+    @property
+    def aspect_ratio(self):
+        return self._aspect_ratio
+    
+    @aspect_ratio.setter
+    def aspect_ratio(self, ratio='auto'):
+        """ Set aspect ratio of the 3D axis """
+        self._aspect_ratio = ratio
+        self.update()
+
+    def _aspect_coords(self):
+        """ Returns the aspect ratio coordinates """
+        if self._aspect_ratio == 'equal':
+            return False
+        elif isinstance(self._aspect_ratio, str):
+            ratios = self.aspect_ratios.get(self._aspect_ratio, (1.0, 1.0, 0.8))
+        elif isinstance(self._aspect_ratio, tuple | list):
+            ratios = self.aspect_ratio
+        else:
+            raise ValueError()
+        return {label: (0.0, ratio) for label, ratio in zip('xyz', ratios)}
+
+    @property
+    def projection(self):
+        return self._projection_method
+    
+    @projection.setter
+    def projection(self, projection_method='perspective'):
+        self._projection_method = projection_method
+        self.update()
 
     def delete(self):
         """ Closes the axis """

@@ -5,7 +5,7 @@ import numpy as np
 
 
 class NiceTicks:
-    """ Determine nice ticklabels values """
+    """ Determine nice tick label values """
     fractions = (1, 2, 5, 10)
     limit_fractions = ((1.5, 1), (3, 2), (7, 5))
 
@@ -70,4 +70,24 @@ def coord_generator(num_ticks=6, **input_data):
 def limit_generator(limit_ratio=0.05, **coord_data):
     """Yield nice axis limits """
     for label, data in coord_data.items():
-        yield label, coord_limits(data, limit_ratio=0.05)
+        yield label, coord_limits(data, limit_ratio=limit_ratio)
+
+
+def coord_transformers(old_coords, new_coords):
+    """ Yield coordinate transformation functions """
+    for label in old_coords:
+        yield label, LinearTransform(old_coords[label], new_coords[label])
+
+
+class LinearTransform:
+    """ Linear transformation class """
+
+    def __init__(self, old, new):
+        """ Initialize the linear transformation """
+        self.scale = (new[-1] - new[0])/(old[-1] - old[0])
+        self.offset = new[0] - old[0]*self.scale
+
+    def __call__(self, array: np.ndarray) -> np.ndarray:
+        """ Apply the linear transformation """
+        return self.scale*array + self.offset
+        
