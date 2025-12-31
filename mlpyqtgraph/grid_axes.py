@@ -137,6 +137,10 @@ class GLGridPlane(GLGraphicsItem):
         yield 'faces', np.array([[0, 1, 2], [0, 2, 3]])
 
 
+class InconsistentCoordsError(Exception):
+    """Raised when coords and coords labels do not have the same length."""
+
+
 class GLAxis(GLGraphicsItem):
     """ Axis with ticks and labels in 3D space """
     sides = (
@@ -259,7 +263,7 @@ class GLAxis(GLGraphicsItem):
         """Update existing labels or create new ones as needed."""
         alignment = self.sides[self.label_side]
         if len(self.coords) != len(self.coords_labels):
-            raise ValueError("coords and coords_labels must have the same length.")
+            raise InconsistentCoordsError("coords and coords_labels must have the same length.")
         for index, (coord, label) in enumerate(zip(self.coords, self.coords_labels)):
             pos = self.tick_coordinates(coord)[1]
             text = f'{label:.1f}'
