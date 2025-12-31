@@ -11,10 +11,12 @@ def main():
     """Run the GLGraphicsItem remove/add example."""
     options.set_options(black_on_white=True)
 
-    mkQApp("Removal Example")
+    mkQApp("GLGridAxis Modification Example")
 
     w = gl.GLViewWidget()
     w.show()
+
+    print(w.width(), w.height())
 
     # Create our custom item
     grid_axes = GLGridAxis()
@@ -23,8 +25,8 @@ def main():
     lim=10.0
     new_coords = {
         'x': [-lim, 0.0, lim],
-        'y': [-lim, 0.0, 0.75*lim],
-        'z': [-lim, -0.5*lim, 0.0, 0.5*lim, lim],
+        'y': [-lim, 0.0, lim],
+        'z': [-3/4*lim, -3/8*lim, 0.0, 3/8*lim, 3/4*lim],
     }
     new_coords_labels = {
         'x': [-lim, 0.0, lim],
