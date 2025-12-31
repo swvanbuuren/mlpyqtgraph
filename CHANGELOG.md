@@ -1,5 +1,70 @@
 # CHANGELOG
 
+## v0.7.0 (2025-12-31)
+
+### Bug Fixes
+
+* Elevation angle range limits ([`86d27eb`](https://github.com/swvanbuuren/mlpyqtgraph/commit/86d27eb05d84cb9d1c925ea69f97c8dc56b70ad5))
+
+### Chores
+
+* Bump python versions for testing and linting ([`a1ca694`](https://github.com/swvanbuuren/mlpyqtgraph/commit/a1ca694157441290eb1c79ebdc13a351cbb06b65))
+
+* Explicitely set pyopengl version ([`c9dd160`](https://github.com/swvanbuuren/mlpyqtgraph/commit/c9dd160a2dfb690ec5f245f3b85dbb784e235cde))
+
+* Bump pqthreads, pyqtgraph and python versions ([`f39ee2b`](https://github.com/swvanbuuren/mlpyqtgraph/commit/f39ee2b5e1ca1728922110cd361451f33801f5fc))
+
+### Features
+
+* Configurable 3d axes aspect ratio ([`38a9843`](https://github.com/swvanbuuren/mlpyqtgraph/commit/38a984369889c48ab1e9b924dad9be15ceae420c))
+
+* Pass other kwargs to glaxis and glgridplane ([`1a91b66`](https://github.com/swvanbuuren/mlpyqtgraph/commit/1a91b666b00950b60a7e20fb726c42793985c03a))
+
+* Support differing tick label and position ([`966c240`](https://github.com/swvanbuuren/mlpyqtgraph/commit/966c2402ece31c6ff085855ad2676932d768a4bd))
+
+* Support dark mode and only create labels when needed ([`714fe99`](https://github.com/swvanbuuren/mlpyqtgraph/commit/714fe99bf3a9142d4cb3bd68e392e55f09c5e307))
+
+### Refactoring
+
+* Improve imports ([`6fd199e`](https://github.com/swvanbuuren/mlpyqtgraph/commit/6fd199e19e711a04a2e0bdfa7d4237a167fd0fac))
+
+* Raise custom error for inconsistent coords ([`45d9ac3`](https://github.com/swvanbuuren/mlpyqtgraph/commit/45d9ac3070568d0e3010dca98e6560ff31e10906))
+
+* Consistent naming of glaxis arguments ([`8b41d74`](https://github.com/swvanbuuren/mlpyqtgraph/commit/8b41d74d852c65170f258b220c1a144317786ced))
+
+* Add docstring and refactor glgridaxis ([`33ec817`](https://github.com/swvanbuuren/mlpyqtgraph/commit/33ec817a53a91a1b64f4e6912a2b7f2e8c0096ed))
+
+* Use indices for axes consistently ([`0efcf70`](https://github.com/swvanbuuren/mlpyqtgraph/commit/0efcf70e8cc3253f5bbede860be8000c24374849))
+
+* Get rid of glaxis axisspecs and config only in glgridaxis ([`abc7f77`](https://github.com/swvanbuuren/mlpyqtgraph/commit/abc7f777fa231fe5ec00da3c642f03f8d6f6329e))
+
+* Extend axisspecs to simplify glaxis code ([`a5aed55`](https://github.com/swvanbuuren/mlpyqtgraph/commit/a5aed55154e3c6f8dfd088ccb6f49e1347705a3e))
+
+* Store alignment in axis_specs ([`a88df51`](https://github.com/swvanbuuren/mlpyqtgraph/commit/a88df5171deea330bde0deaa011d384c9f1501dd))
+
+* Make glaxis more concise using a dataclass ([`d28b012`](https://github.com/swvanbuuren/mlpyqtgraph/commit/d28b0124b98a07227168c8a78a318dba4fc2062d))
+
+* Glaxis refactoring ([`284091a`](https://github.com/swvanbuuren/mlpyqtgraph/commit/284091a60af452d747e0714fc4b074e611370a89))
+
+* Simplify glgridaxis code ([`cb4177e`](https://github.com/swvanbuuren/mlpyqtgraph/commit/cb4177e96fb7664cbdd5655fceeb1830f3293459))
+
+* Simplify grid and axis generators in glgridaxis ([`f109fdd`](https://github.com/swvanbuuren/mlpyqtgraph/commit/f109fdd14aefc23c0a2f1c7749dc0d81794ac684))
+
+* Move plot responsibilities from glgridaxis into child glgraphicsitem's ([`75183f3`](https://github.com/swvanbuuren/mlpyqtgraph/commit/75183f35a3351d26fff9d4260d8325559fc5f920))
+
+* Refactor and simplify grid_axes ([`6945932`](https://github.com/swvanbuuren/mlpyqtgraph/commit/69459325e0505d4cda4b9c8518f5867e0ca2d759))
+
+* Align axes module with upstream changes ([`4cf618b`](https://github.com/swvanbuuren/mlpyqtgraph/commit/4cf618b0be782851fff2f5bba704062c0ce9a235))
+
+* Use upstream glsurfaceplotitem surface plotter ([`555b3f3`](https://github.com/swvanbuuren/mlpyqtgraph/commit/555b3f3d309e94b4bb19b5a1f1e69b45345463d6))
+
+### Testing
+
+* 3d axes aspect ratio and projection in examples ([`9ca1d4c`](https://github.com/swvanbuuren/mlpyqtgraph/commit/9ca1d4ce8d15f44dc44c798ebd8bd4be953f96ef))
+
+* Improve grid_axes test ([`3f84e24`](https://github.com/swvanbuuren/mlpyqtgraph/commit/3f84e2469dc28b4751c8e88b9aa85a2d06be664b))
+
+* Add simplie gridaxis change test ([`ce00044`](https://github.com/swvanbuuren/mlpyqtgraph/commit/ce000441707617094718b159b6056e98b583dca0))
 ## v0.6.3 (2025-02-26)
 
 ### Bug Fixes
