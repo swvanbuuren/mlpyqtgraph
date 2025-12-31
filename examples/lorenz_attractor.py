@@ -54,16 +54,15 @@ def euler(dxdt, x0, dt=0.005, num_steps=10_000):
     return x.T
 
 
-@mpg.plotter
+@mpg.plotter(projection='orthographic')
 def main():
     """ Plot Lorenz attractor """
     x, y, z = euler(dxdt=lorenz, x0=(0., 1., 1.05))
 
     mpg.figure(title='Lorenz attractor', layout_type='Qt')
-    mpg.plot3(x, y, z, projection='orthographic')
+    mpg.plot3(x, y, z)
     ax = mpg.gca()
     ax.azimuth = 315
-
 
 if __name__ == '__main__':
     main()
