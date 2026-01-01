@@ -152,7 +152,7 @@ class GLAxis(GLGraphicsItem):
     def __init__(self, parentItem=None, **kwargs):
         super().__init__(parentItem=parentItem)
         self.coords = (0, 1)
-        self.coords_labels = self.coords
+        self.coords_labels = tuple(f'{coord:.1f}' for coord in self.coords)
         self.limits = (-0.05, 1.05)
         self.other_limits = (-0.05, 1.05), (-0.05, 1.05)
         self.axis = 0
@@ -266,11 +266,11 @@ class GLAxis(GLGraphicsItem):
             raise InconsistentCoordsError("coords and coords_labels must have the same length.")
         for index, (coord, label) in enumerate(zip(self.coords, self.coords_labels)):
             pos = self.tick_coordinates(coord)[1]
-            text = f'{label:.1f}'
+            #text = f'{label:.1f}'
             if index < len(self._labels):
                 self._labels[index].setData(
                     pos=pos,
-                    text=text,
+                    text=label,
                     color=self.label_color,
                     alignment=alignment
                 )
@@ -278,7 +278,7 @@ class GLAxis(GLGraphicsItem):
                 self._labels.append(GLTextItem(
                     parentItem=self,
                     pos=pos,
-                    text=text,
+                    text=label,
                     color=self.label_color,
                     font=self.font,
                     alignment=alignment,
@@ -347,7 +347,7 @@ class GLGridAxis(GLGraphicsItem):
     def __init__(self, parentItem=None, **kwargs):
         super().__init__(parentItem=parentItem)
         self.coords = {axis: [-1.0, 0.0, 1.0] for axis in 'xyz'}
-        self.coords_labels = self.coords
+        self.coords_labels = {key: [f'{x:.1f}' for x in value] for key, value in self.coords.items()}
         self.limits = {axis: [-1.05, 1.05] for axis in 'xyz'}
         self._last_view = [0.0, 0.0]
         self._grid = [

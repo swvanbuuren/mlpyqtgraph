@@ -311,6 +311,7 @@ class Axis3D(GLGraphicsItem):
         self._items: List[Axis3DItem] = []
         self._aspect_ratio = 'auto'
         self._projection_method = options.get_option('projection')
+        self._label_fmt = '.1f'
 
     def _get_view(self) -> GLViewWidget:
         if view := self.view():
@@ -363,7 +364,12 @@ class Axis3D(GLGraphicsItem):
         else:
             coords = coords_labels
         limits = dict(limit_generator(limit_ratio=0.05, **coords))
-        return coords, coords_labels, limits
+        coords_str_labels = dict(self._gen_str_labels(coords_labels))
+        return coords, coords_str_labels, limits
+
+    def _gen_str_labels(self, coords):
+        for key, value in coords.items():
+            yield key, [f'{x:{self._label_fmt}}' for x in value]
 
     @staticmethod
     def set_colormap(surface, colormap_type='CET-L10'):
@@ -428,6 +434,15 @@ class Axis3D(GLGraphicsItem):
     @projection.setter
     def projection(self, projection_method='perspective'):
         self._projection_method = projection_method
+        self.update()
+
+    @property
+    def label_fmt(self):
+        return self._label_fmt
+    
+    @label_fmt.setter
+    def label_fmt(self, fmt: str):
+        self._label_fmt = fmt
         self.update()
 
     def delete(self):

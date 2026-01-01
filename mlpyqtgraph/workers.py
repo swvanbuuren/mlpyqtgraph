@@ -28,6 +28,7 @@ class AxisWorker(containers.WorkerItem):
     elevation = factory.attribute()
     aspect_ratio = factory.attribute()
     projection = factory.attribute()
+    label_fmt = factory.attribute()
 
 
 class FigureWorker(containers.WorkerItem):

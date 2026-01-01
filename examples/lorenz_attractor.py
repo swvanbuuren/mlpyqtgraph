@@ -63,6 +63,7 @@ def main():
     mpg.plot3(x, y, z)
     ax = mpg.gca()
     ax.azimuth = 315
+    ax.label_fmt = '.0f'
 
 if __name__ == '__main__':
     main()

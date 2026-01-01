@@ -7,6 +7,10 @@ from mlpyqtgraph.grid_axes import GLGridAxis
 from mlpyqtgraph.config import options
 
 
+def float_to_str(*args, decimals=1):
+    return [f'{x:.{decimals}f}' for x in args]
+
+
 def main():
     """Run the GLGraphicsItem remove/add example."""
     options.set_options(black_on_white=True)
@@ -16,11 +20,9 @@ def main():
     w = gl.GLViewWidget()
     w.show()
 
-    print(w.width(), w.height())
-
-    # Create our custom item
     grid_axes = GLGridAxis()
     w.addItem(grid_axes)
+    w.setCameraPosition(**grid_axes.best_camera())
 
     lim=10.0
     new_coords = {
@@ -29,9 +31,9 @@ def main():
         'z': [-3/4*lim, -3/8*lim, 0.0, 3/8*lim, 3/4*lim],
     }
     new_coords_labels = {
-        'x': [-lim, 0.0, lim],
-        'y': [-lim, 0.0, 0.75*lim],
-        'z': [-2, -1, 0.0, 1, 2],
+        'x': float_to_str(-lim, 0.0, lim),
+        'y': float_to_str(-lim, 0.0, 0.75*lim),
+        'z': float_to_str(-2, -1, 0.0, 1, 2),
     }
     new_limits = {
         'x': (1.05*new_coords['x'][0], 1.05*new_coords['x'][-1]),
