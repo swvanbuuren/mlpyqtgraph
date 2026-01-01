@@ -391,6 +391,7 @@ class Axis3D(GLGraphicsItem):
 
     @property
     def azimuth(self):
+        """ Azimuth view angle """
         return self._get_view().cameraParams()['azimuth']
 
     @azimuth.setter
@@ -399,6 +400,7 @@ class Axis3D(GLGraphicsItem):
 
     @property
     def elevation(self):
+        """ Elevation view angle """
         return self._get_view().cameraParams()['elevation']
 
     @elevation.setter
@@ -407,6 +409,15 @@ class Axis3D(GLGraphicsItem):
 
     @property
     def aspect_ratio(self):
+        """ Axes and data scaling aspect ratio
+        
+        Either set as string value:
+        auto: (1.0, 1.0, 0.8)
+        flat: (1.0, 1.0, 0.6)
+        cube: (1.0, 1.0, 1.0)
+        equal: No scaling, respect data's aspect ratio
+        or directly set with a tuple/list value.
+        """
         return self._aspect_ratio
     
     @aspect_ratio.setter
@@ -429,6 +440,7 @@ class Axis3D(GLGraphicsItem):
 
     @property
     def projection(self):
+        """ Projection method, can be either 'perspective' or 'orthographic' """
         return self._projection_method
     
     @projection.setter
@@ -438,6 +450,7 @@ class Axis3D(GLGraphicsItem):
 
     @property
     def label_fmt(self):
+        """ Number format of the labels, default: '.1f' """
         return self._label_fmt
     
     @label_fmt.setter
