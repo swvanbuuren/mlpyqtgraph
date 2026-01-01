@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## v0.8.0 (2026-01-01)
+
+### Features
+
+* Configurable 3d axis label format ([`245ec2b`](https://github.com/swvanbuuren/mlpyqtgraph/commit/245ec2b2c5876ac4922d685b0b220a3cba77fc2a))
 ## v0.7.0 (2025-12-31)
 
 ### Bug Fixes
