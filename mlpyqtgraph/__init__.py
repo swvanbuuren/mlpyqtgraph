@@ -14,7 +14,7 @@ from . import ml_functions
 from .ml_functions import *
 
 
-__version__ = '0.8.0'
+__version__ = '0.9.0'
 
 
 pqthreads_config.params.signal_slot_timeout = 10_000

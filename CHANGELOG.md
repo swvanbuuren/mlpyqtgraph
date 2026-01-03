@@ -1,5 +1,16 @@
 # CHANGELOG
 
+## v0.9.0 (2026-01-03)
+
+### Documentation
+
+* Improve axis3d documentation ([`f379430`](https://github.com/swvanbuuren/mlpyqtgraph/commit/f379430e3b43a520110067ccb4ae02f4c441ce96))
+
+* Document 3daxis properties ([`553dee6`](https://github.com/swvanbuuren/mlpyqtgraph/commit/553dee671da001e7baed46aa648d823fd0684665))
+
+### Features
+
+* Configurable 3d axis ticks and limits ([`eac35c3`](https://github.com/swvanbuuren/mlpyqtgraph/commit/eac35c36fbed4b141824dac882ed1f59c8220092))
 ## v0.8.0 (2026-01-01)
 
 ### Features
