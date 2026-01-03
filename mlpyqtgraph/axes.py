@@ -99,20 +99,27 @@ class Axis2D(PlotItem):  # noqa: PLR0904
         return color
 
     def add(self, x_coord, y_coord, **kwargs):
-        """
-        Add a line to the Axes
+        """Add a line to the Axes
 
-        **Keyword arguments**
+        Arguments:
+            x_coord:
+                x coordinates
+            y_coord:
+                y coordinates
 
-        ============ ===========================================================
-        color        line color, default value will determine using
-                     :py:meth:`default_line_color()<mlpyqtgraph.axes.Axis2D.default_line_color>`
-        style        line style
-        width        line width
-        symbol       symbol type
-        symbol_size  symbol size
-        symbol_color symbol color
-        ============ ===========================================================
+        Keyword arguments:
+            color:
+                line color, default value will determine using
+                :py:meth:`default_line_color()<mlpyqtgraph.axes.Axis2D.default_line_color>`
+            style:
+                line style
+            width:
+                line width
+            symbol:
+                symbol type symbol_size: symbol size
+            symbol_color:
+                symbol color
+
         """
         color = kwargs.get('color', self.default_line_color())
         width = kwargs.get('width', 2.0)
@@ -284,6 +291,7 @@ class Axis3DItem:
 class ViewNotDefinedError(Exception):
     """ Raised if view is not defined yet """
 
+
 class Axis3D(GLGraphicsItem):
     """ 3D axis """
 
@@ -313,32 +321,6 @@ class Axis3D(GLGraphicsItem):
         self._projection_method = options.get_option('projection')
         self._label_fmt = '.1f'
 
-    def _get_view(self) -> GLViewWidget:
-        if view := self.view():
-            return view
-        raise ViewNotDefinedError
-
-    def _add_item(self, item: GLSurfacePlotItem | GLLinePlotItem, *data, **options):
-        self._items.append(Axis3DItem(item, data, options))
-        self._get_view().addItem(item)
-
-    def update(self):
-        for item in self._items:
-            plot_item = item.instance
-            coord_kwargs = dict(zip('xyz', item.data))
-            coords, coords_labels, limits = self.transform_coordinates(coord_kwargs)
-            if isinstance(plot_item, GLSurfacePlotItem):
-                plot_item.setData(**coord_kwargs)
-                if colormap := item.options.get('colormap'):
-                    self.set_colormap(plot_item, colormap_type=colormap)
-            elif isinstance(plot_item, GLLinePlotItem):
-                points = np.column_stack(list(coord_kwargs.values()))
-                plot_item.setData(pos=points)
-            self.set_projection_method(*coord_kwargs.values())
-            self.grid_axes.setData(coords=coords, coords_labels=coords_labels, limits=limits)
-            self._get_view().setCameraPosition(**self.grid_axes.best_camera(method=self._projection_method))
-        super().update()
-
     def surf(self, *args, **kwargs):
         """ Adds a 3D surface plot item to the view widget  """
         kwargs = dict(self.default_surface_options, **kwargs)
@@ -353,7 +335,33 @@ class Axis3D(GLGraphicsItem):
         self._add_item(line, *args, **kwargs)
         self.update()
 
-    def transform_coordinates(self, coord_kwargs):
+    def update(self):
+        for item in self._items:
+            plot_item = item.instance
+            coord_kwargs = dict(zip('xyz', item.data))
+            coords, coords_labels, limits = self._transform_coordinates(coord_kwargs)
+            if isinstance(plot_item, GLSurfacePlotItem):
+                plot_item.setData(**coord_kwargs)
+                if colormap := item.options.get('colormap'):
+                    self._set_colormap(plot_item, colormap_type=colormap)
+            elif isinstance(plot_item, GLLinePlotItem):
+                points = np.column_stack(list(coord_kwargs.values()))
+                plot_item.setData(pos=points)
+            self._set_projection_method(*coord_kwargs.values())
+            self.grid_axes.setData(coords=coords, coords_labels=coords_labels, limits=limits)
+            self._get_view().setCameraPosition(**self.grid_axes.best_camera(method=self._projection_method))
+        super().update()
+
+    def _get_view(self) -> GLViewWidget:
+        if view := self.view():
+            return view
+        raise ViewNotDefinedError
+
+    def _add_item(self, item: GLSurfacePlotItem | GLLinePlotItem, *data, **options):
+        self._items.append(Axis3DItem(item, data, options))
+        self._get_view().addItem(item)
+
+    def _transform_coordinates(self, coord_kwargs):
         """ Transforms the given coordinates according to fixed coords """
         coords_labels = dict(coord_generator(**coord_kwargs))
         if aspect_coords := self._aspect_coords():
@@ -372,7 +380,7 @@ class Axis3D(GLGraphicsItem):
             yield key, [f'{x:{self._label_fmt}}' for x in value]
 
     @staticmethod
-    def set_colormap(surface, colormap_type='CET-L10'):
+    def _set_colormap(surface, colormap_type='CET-L10'):
         """ Assign colormap to surface using surface height """
         heights = surface._z
         normalized_heights = (heights - heights.min())/np.ptp(heights)
@@ -380,7 +388,7 @@ class Axis3D(GLGraphicsItem):
             colors = current_colormap.map(normalized_heights, mode=ColorMap.FLOAT)
             surface._meshdata.setFaceColors(colors)
 
-    def set_projection_method(self, *coords):
+    def _set_projection_method(self, *coords):
         """ Sets the projection method, either perspective or orthographic """
         object_size = (sum([np.ptp(coord)**3.0 for coord in coords]))**(1.0/3.0)
         field_of_view = 60
@@ -411,12 +419,17 @@ class Axis3D(GLGraphicsItem):
     def aspect_ratio(self):
         """ Axes and data scaling aspect ratio
         
-        Either set as string value:
-        auto: (1.0, 1.0, 0.8)
-        flat: (1.0, 1.0, 0.6)
-        cube: (1.0, 1.0, 1.0)
-        equal: No scaling, respect data's aspect ratio
-        or directly set with a tuple/list value.
+        Either set as string value or directly set with a tuple/list value.
+
+        Possible string values:
+            auto:
+                (1.0, 1.0, 0.8)
+            flat:
+                (1.0, 1.0, 0.6)
+            cube:
+                (1.0, 1.0, 1.0)
+            equal:
+                No scaling, respect data aspect ratio
         """
         return self._aspect_ratio
     
