@@ -98,7 +98,7 @@ class Axis2D(PlotItem):  # noqa: PLR0904
             return color[:3] + (254,)
         return color
 
-    def add(self, x_coord, y_coord, **kwargs):
+    def add(self, x_coord: np.ndarray, y_coord: np.ndarray, **kwargs):
         """Add a line to the Axes
 
         Arguments:
@@ -110,7 +110,7 @@ class Axis2D(PlotItem):  # noqa: PLR0904
         Keyword arguments:
             color:
                 line color, default value will determine using
-                :py:meth:`default_line_color()<mlpyqtgraph.axes.Axis2D.default_line_color>`
+                [`default_line_color`](./#mlpyqtgraph.axes.Axis2D.default_line_color)
             style:
                 line style
             width:
@@ -292,6 +292,10 @@ class ViewNotDefinedError(Exception):
     """ Raised if view is not defined yet """
 
 
+class InvalidTicks(Exception):
+    """ Raised for invalid no. of ticks entries """
+
+
 class Axis3D(GLGraphicsItem):
     """ 3D axis """
 
@@ -320,6 +324,8 @@ class Axis3D(GLGraphicsItem):
         self._aspect_ratio = 'auto'
         self._projection_method = options.get_option('projection')
         self._label_fmt = '.1f'
+        self._lim = { c: [] for c in 'xyz' }
+        self._max_no_ticks = { c: 6 for c in 'xyz' }
 
     def surf(self, *args, **kwargs):
         """ Adds a 3D surface plot item to the view widget  """
@@ -355,15 +361,27 @@ class Axis3D(GLGraphicsItem):
     def _get_view(self) -> GLViewWidget:
         if view := self.view():
             return view
-        raise ViewNotDefinedError
+        raise ViewNotDefinedError('Axis3D doesn\'t have a view!')
 
     def _add_item(self, item: GLSurfacePlotItem | GLLinePlotItem, *data, **options):
         self._items.append(Axis3DItem(item, data, options))
         self._get_view().addItem(item)
 
+    def _aspect_coords(self):
+        """ Returns the aspect ratio coordinates """
+        if self._aspect_ratio == 'equal':
+            return False
+        elif isinstance(self._aspect_ratio, str):
+            ratios = self.aspect_ratios.get(self._aspect_ratio, (1.0, 1.0, 0.8))
+        elif isinstance(self._aspect_ratio, tuple | list):
+            ratios = self.aspect_ratio
+        else:
+            raise ValueError()
+        return {label: (0.0, ratio) for label, ratio in zip('xyz', ratios)}
+
     def _transform_coordinates(self, coord_kwargs):
         """ Transforms the given coordinates according to fixed coords """
-        coords_labels = dict(coord_generator(**coord_kwargs))
+        coords_labels = dict(coord_generator(coord_kwargs, max_no_ticks=self._max_no_ticks, limits=self._lim))
         if aspect_coords := self._aspect_coords():
             coords = {}
             for key, transformer in coord_transformers(coords_labels, aspect_coords):
@@ -419,17 +437,13 @@ class Axis3D(GLGraphicsItem):
     def aspect_ratio(self):
         """ Axes and data scaling aspect ratio
         
-        Either set as string value or directly set with a tuple/list value.
+        Either a string or a tuple/list.
 
-        Possible string values:
-            auto:
-                (1.0, 1.0, 0.8)
-            flat:
-                (1.0, 1.0, 0.6)
-            cube:
-                (1.0, 1.0, 1.0)
-            equal:
-                No scaling, respect data aspect ratio
+        - `'auto'`: `(1.0, 1.0, 0.8)`
+        - `'flat'`: `(1.0, 1.0, 0.6)`
+        - `'cube'`: `(1.0, 1.0, 1.0)`
+        - `'equal'`: No scaling, respect data aspect ratio
+        - `tuple` with three floats
         """
         return self._aspect_ratio
     
@@ -438,18 +452,6 @@ class Axis3D(GLGraphicsItem):
         """ Set aspect ratio of the 3D axis """
         self._aspect_ratio = ratio
         self.update()
-
-    def _aspect_coords(self):
-        """ Returns the aspect ratio coordinates """
-        if self._aspect_ratio == 'equal':
-            return False
-        elif isinstance(self._aspect_ratio, str):
-            ratios = self.aspect_ratios.get(self._aspect_ratio, (1.0, 1.0, 0.8))
-        elif isinstance(self._aspect_ratio, tuple | list):
-            ratios = self.aspect_ratio
-        else:
-            raise ValueError()
-        return {label: (0.0, ratio) for label, ratio in zip('xyz', ratios)}
 
     @property
     def projection(self):
@@ -469,6 +471,83 @@ class Axis3D(GLGraphicsItem):
     @label_fmt.setter
     def label_fmt(self, fmt: str):
         self._label_fmt = fmt
+        self.update()
+
+    @property
+    def xlim(self):
+        """Custom x-axis limits"""
+        return self._lim['x']
+    
+    @xlim.setter
+    def xlim(self, xlim: list):
+        self._lim['x'] = xlim
+        self.update()
+
+    @property
+    def ylim(self):
+        """Custom y-axis limits"""
+        return self._lim['y']
+    
+    @ylim.setter
+    def ylim(self, ylim: list):
+        self._lim['y'] = ylim
+        self.update()
+
+    @property
+    def zlim(self):
+        """Custom z-axis limits"""
+        return self._lim['z']
+    
+    @zlim.setter
+    def zlim(self, zlim: list):
+        self._lim['z'] = zlim
+        self.update()
+
+    @staticmethod
+    def _check_ticks(no_ticks):
+        if no_ticks > 1:
+            return no_ticks
+        raise InvalidTicks(
+            f'No. of ticks should be larger than 1, received: {no_ticks}'
+        )
+
+    @property
+    def xticks(self):
+        """ Approximate number of x-axis ticks
+
+        Should be 2 or larger.
+        """
+        return self._max_no_ticks['x']
+
+    @xticks.setter
+    def xticks(self, no_ticks: int):
+        self._max_no_ticks['x'] = self._check_ticks(no_ticks)
+        self.update()
+
+    @property
+    def yticks(self):
+        """ Approximate number of x-axis ticks
+
+        Should be 2 or larger.
+        """
+        return self._max_no_ticks['y']
+
+    @yticks.setter
+    def yticks(self, no_ticks: int):
+        self._max_no_ticks['y'] = self._check_ticks(no_ticks)
+        self.update()
+
+    @property
+    def zticks(self):
+        """ Approximate number of x-axis ticks
+
+        Should be 2 or larger.
+        """
+        return self._max_no_ticks['z']
+
+    @zticks.setter
+    def zticks(self, no_ticks: int):
+        self._max_no_ticks['z'] = self._check_ticks(no_ticks)
         self.update()
 
     def delete(self):

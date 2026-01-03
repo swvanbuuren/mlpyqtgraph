@@ -9,8 +9,8 @@ class NiceTicks:
     fractions = (1, 2, 5, 10)
     limit_fractions = ((1.5, 1), (3, 2), (7, 5))
 
-    def __init__(self, minv, maxv, max_ticks=6):
-        self.max_ticks = max_ticks
+    def __init__(self, minv, maxv, max_no_ticks=6):
+        self.max_no_ticks = max_no_ticks
         self.tick_spacing = 0
         self.nice_min = 0
         self.nice_max = 0
@@ -19,7 +19,7 @@ class NiceTicks:
     def calculate_tick_params(self, min_point, max_point):
         """ Calculate nice tick parameters """
         lst = self.nice_number(max_point - min_point, False)
-        tick_spacing = self.nice_number(lst / (self.max_ticks - 1.0), True)
+        tick_spacing = self.nice_number(lst / (self.max_no_ticks - 1.0), True)
         self.tick_spacing = tick_spacing
         self.nice_min = tick_spacing*math.floor(min_point / tick_spacing)
         self.nice_max = tick_spacing*math.ceil(max_point / tick_spacing)
@@ -48,9 +48,9 @@ class NiceTicks:
         return self.nice_fraction(fraction, rround) * 10**exponent
 
 
-def nice_ticks(data_min, data_max, num_ticks=6):
+def nice_ticks(data_min, data_max, max_no_ticks=6):
     """Calculate nice axis tick positions and labels. """
-    nice_ticks = NiceTicks(data_min, data_max)
+    nice_ticks = NiceTicks(data_min, data_max, max_no_ticks=max_no_ticks)
     return nice_ticks.tick_values()
 
 
@@ -61,10 +61,18 @@ def coord_limits(coord, limit_ratio=0.05):
     return limits
 
 
-def coord_generator(num_ticks=6, **input_data):
+def coord_generator(
+        input_data,
+        max_no_ticks: dict | None=None,
+        limits: dict | None = None
+):
     """Yield nice axis tick positions """
     for label, data in input_data.items():
-        yield label, nice_ticks(np.min(data), np.max(data), num_ticks=6)
+        lim = limits.get(label, []) if limits else []
+        min_limit = lim[0] if len(lim) > 0 and lim[0] is not None else np.min(data)
+        max_limit = lim[1] if len(lim) > 1 and lim[1] is not None else np.max(data)
+        no_ticks = max_no_ticks.get(label, 6) if max_no_ticks else 6
+        yield label, nice_ticks(min_limit, max_limit, max_no_ticks=no_ticks)
 
 
 def limit_generator(limit_ratio=0.05, **coord_data):

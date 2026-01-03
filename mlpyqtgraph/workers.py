@@ -29,6 +29,12 @@ class AxisWorker(containers.WorkerItem):
     aspect_ratio = factory.attribute()
     projection = factory.attribute()
     label_fmt = factory.attribute()
+    xlim = factory.attribute()
+    ylim = factory.attribute()
+    zlim = factory.attribute()
+    xticks = factory.attribute()
+    yticks = factory.attribute()
+    zticks = factory.attribute()
 
 
 class FigureWorker(containers.WorkerItem):

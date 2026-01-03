@@ -19,6 +19,7 @@ plugins:
         python:
           options:
             show_root_toc_entry: false
+            relative_crossrefs: false
 
 markdown_extensions:
   - attr_list
