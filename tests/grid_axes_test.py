@@ -20,7 +20,7 @@ def main():
     w = gl.GLViewWidget()
     w.show()
 
-    grid_axes = GLGridAxis()
+    grid_axes = GLGridAxis(line_antialias=True)
     w.addItem(grid_axes)
     w.setCameraPosition(**grid_axes.best_camera())
 

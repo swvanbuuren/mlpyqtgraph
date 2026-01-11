@@ -307,17 +307,18 @@ class Axis3D(GLGraphicsItem):
 
     def __init__(self, index, parentItem=None, **kwargs):
         super().__init__(parentItem=parentItem)
+        antialiasing = options.get_option('antialiasing')
         self.index = index
-        self.grid_axes = GLGridAxis(parentItem=self)
+        self.grid_axes = GLGridAxis(parentItem=self, line_antialias=antialiasing)
         self.default_surface_options = {
             'color': (0, 0, 0, 1),
             'showGrid': True,
-            'lineAntialias': options.get_option('antialiasing'),
+            'lineAntialias': antialiasing,
             'colormap': options.get_option('colormap'),
         }
         self.default_line_options = {
             'color': (0, 0, 0, 1),
-            'antialias': options.get_option('antialiasing'),
+            'antialias': antialiasing,
             'width': 1,
         }
         self._items: List[Axis3DItem] = []
