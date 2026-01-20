@@ -1,5 +1,14 @@
 # CHANGELOG
 
+## v0.9.1 (2026-01-20)
+
+### Bug Fixes
+
+* Set share opengl contexts to allow multiple figures with shaders ([`9d99c30`](https://github.com/swvanbuuren/mlpyqtgraph/commit/9d99c30880b5f5aaf3c4005b425666d555827b67))
+
+### Refactoring
+
+* Include changes from upstream glgridaxis contribution ([`943a7c0`](https://github.com/swvanbuuren/mlpyqtgraph/commit/943a7c0faeb45fe525cf698fab4f25f0f1932231))
 ## v0.9.0 (2026-01-03)
 
 ### Documentation
