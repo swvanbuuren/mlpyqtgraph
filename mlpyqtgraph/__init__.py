@@ -3,6 +3,7 @@ __init__.py for mlpyqtgraph, only functions and classes which are meant to be
 used as interface
 """
 
+from pyqtgraph.Qt import QtCore
 from pqthreads import config as pqthreads_config
 from pqthreads.decorator import DecoratorCore, Decorator
 from mlpyqtgraph import windows
@@ -18,6 +19,7 @@ __version__ = '0.9.0'
 
 
 pqthreads_config.params.signal_slot_timeout = 10_000
+pqthreads_config.params.set_application_attribute(QtCore.Qt.ApplicationAttribute.AA_ShareOpenGLContexts)
 
 
 class OptionsDecoratorCore(DecoratorCore):
