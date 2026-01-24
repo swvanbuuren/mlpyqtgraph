@@ -527,7 +527,7 @@ class Axis3D(GLGraphicsItem):
 
     @property
     def yticks(self):
-        """ Approximate number of x-axis ticks
+        """ Approximate number of y-axis ticks
 
         Should be 2 or larger.
         """
@@ -540,7 +540,7 @@ class Axis3D(GLGraphicsItem):
 
     @property
     def zticks(self):
-        """ Approximate number of x-axis ticks
+        """ Approximate number of z-axis ticks
 
         Should be 2 or larger.
         """
