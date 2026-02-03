@@ -5,7 +5,7 @@ import math
 from dataclasses import dataclass
 from typing import List
 from pyqtgraph import PlotItem, ColorMap, colormap, QtCore, Point, mkBrush, mkPen
-from pyqtgraph.opengl import GLSurfacePlotItem, GLLinePlotItem, GLViewWidget
+from pyqtgraph.opengl import GLLinePlotItem, GLViewWidget
 from pyqtgraph.opengl.GLGraphicsItem import GLGraphicsItem
 import pyqtgraph.functions as fn
 import numpy as np
@@ -14,6 +14,7 @@ from mlpyqtgraph.config import options
 from mlpyqtgraph import colors
 from mlpyqtgraph.grid_axes import GLGridAxis
 from mlpyqtgraph.utils.ticklabels import coord_generator, limit_generator, coord_transformers
+from mlpyqtgraph.utils.GLSurfacePlotItem import GLSurfacePlotItem
 
 
 class RootException(Exception):

@@ -27,6 +27,8 @@ class GLSurfacePlotItem(GLMeshItem):
         self._y = None
         self._z = None
         self._color = None
+        self._x_shape = None
+        self._y_shape = None
         self._showGrid = False
         self._lineColor = (0, 0, 0, 1)
         self._lineWidth = 1.0
@@ -58,10 +60,11 @@ class GLSurfacePlotItem(GLMeshItem):
         
         ==============  =====================================================================
         **Arguments:**
-        x,y             1D arrays of values specifying the x,y positions of vertexes in the
-                        grid. If these are omitted, then the values will be assumed to be
-                        integers.
-        z               2D array of height values for each grid vertex.
+        x,y             1D or 2D arrays of values specifying positions of vertexes.
+                        If 1D: shape (N,) - interpreted as grid coordinates
+                        If 2D: shape (rows, cols) - interpreted as per-vertex positions
+                        If omitted, integers are assumed.
+        z               2D array of height values, shape (rows, cols)
         colors          (width, height, 4) array of vertex colors.
         showGrid        Show the grid lines.
         lineColor       Color of the grid lines.
@@ -84,20 +87,24 @@ class GLSurfacePlotItem(GLMeshItem):
         x, y, z, colors = map(kwds.get, self.mesh_keys)
 
         if x is not None:
-            if self._x is None or len(x) != len(self._x):
+            x_shape = np.asarray(x).shape
+            if self._x is None or self._x_shape != x_shape:
                 self._vertexes = None
             self._x = x
+            self._x_shape = x_shape
         
         if y is not None:
-            if self._y is None or len(y) != len(self._y):
+            y_shape = np.asarray(y).shape
+            if self._y is None or self._y_shape != y_shape:
                 self._vertexes = None
             self._y = y
+            self._y_shape = y_shape
         
         if z is not None:
-            if self._x is not None and z.shape[0] != len(self._x):
-                raise Exception('Z values must have shape (len(x), len(y))')
-            if self._y is not None and z.shape[1] != len(self._y):
-                raise Exception('Z values must have shape (len(x), len(y))')
+            if self._x is not None and z.shape[0] != self._x_shape[0]:
+                raise Exception('Z values must have shape (len(x), len(y)) or match x.shape[0]')
+            if self._y is not None and z.shape[1] != self._y_shape[-1]:  # -1 handles both 1D and 2D
+                raise Exception('Z values must have shape (len(x), len(y)) or match y.shape[-1]')
             self._z = z
             if self._vertexes is not None and self._z.shape != self._vertexes.shape[:2]:
                 self._vertexes = None
@@ -127,7 +134,14 @@ class GLSurfacePlotItem(GLMeshItem):
                     x = np.arange(self._z.shape[0])
                 else:
                     x = self._x
-            self._vertexes[:, :, 0] = x.reshape(len(x), 1)
+            
+            x_arr = np.asarray(x)
+            if x_arr.ndim == 1:
+                self._vertexes[:, :, 0] = x_arr.reshape(len(x_arr), 1)
+            elif x_arr.ndim == 2:
+                if x_arr.shape != self._vertexes.shape[:2]:
+                    raise Exception(f'x shape {x_arr.shape} must match z shape {self._z.shape}')
+                self._vertexes[:, :, 0] = x_arr
             updateMesh = True
         
         if newVertexes or y is not None:
@@ -136,7 +150,14 @@ class GLSurfacePlotItem(GLMeshItem):
                     y = np.arange(self._z.shape[1])
                 else:
                     y = self._y
-            self._vertexes[:, :, 1] = y.reshape(1, len(y))
+            
+            y_arr = np.asarray(y)
+            if y_arr.ndim == 1:
+                self._vertexes[:, :, 1] = y_arr.reshape(1, len(y_arr))
+            elif y_arr.ndim == 2:
+                if y_arr.shape != self._vertexes.shape[:2]:
+                    raise Exception(f'y shape {y_arr.shape} must match z shape {self._z.shape}')
+                self._vertexes[:, :, 1] = y_arr
             updateMesh = True
         
         if newVertexes or z is not None:
@@ -172,6 +193,16 @@ class GLSurfacePlotItem(GLMeshItem):
             faces[start+cols:start+(cols*2)] = rowtemplate2 + row * (cols+1)
         self._faces = faces
 
+    @staticmethod
+    def _broadcast_coords(coords, target_shape, z_shape, reshaped):
+        """Broadcast 1D coords or use 2D coords directly."""
+        if coords is None:
+            coords = np.arange(target_shape)
+        coords = np.asarray(coords)
+        if coords.ndim == 1:
+            coords = np.broadcast_to(coords.reshape(*reshaped), z_shape)
+        return coords
+
     def _update_grid(self):
         if not self._showGrid or self._z is None:
             return
@@ -185,13 +216,12 @@ class GLSurfacePlotItem(GLMeshItem):
         z = self._z.astype(np.float32)
         rows, cols = z.shape
 
-        x = (self._x if self._x is not None else np.arange(rows, dtype=z.dtype))
-        y = (self._y if self._y is not None else np.arange(cols, dtype=z.dtype))
+        xvals = self._broadcast_coords(self._x, rows, z.shape, (rows, 1))
+        yvals = self._broadcast_coords(self._y, cols, z.shape, (1, cols))
 
-        xvals, yvals = np.meshgrid(x, y, indexing='ij')  # shape (rows, cols)
         verts_flat = np.column_stack((xvals.ravel(), yvals.ravel(), z.ravel()))
 
-        idx = np.arange(z.size, dtype=np.int32).reshape(rows, cols)
+        idx = np.arange(z.size, dtype=np.int32).reshape(*z.shape)
         h = np.column_stack((idx[:, :-1].ravel(), idx[:, 1:].ravel()))
         v = np.column_stack((idx[:-1, :].ravel(), idx[1:, :].ravel()))
         edges = np.vstack((h, v))
