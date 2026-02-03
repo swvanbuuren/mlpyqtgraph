@@ -1,5 +1,14 @@
 # CHANGELOG
 
+## v0.10.0 (2026-02-03)
+
+### Documentation
+
+* Correct docstring for yticks and zticks ([`fa9e214`](https://github.com/swvanbuuren/mlpyqtgraph/commit/fa9e214984d964ac1a1cd75e530a08560fafe964))
+
+### Features
+
+* Support meshgrid input for surface plots ([`9aba615`](https://github.com/swvanbuuren/mlpyqtgraph/commit/9aba615d1fb17528de8ee9c37aa61c200f512db4))
 ## v0.9.1 (2026-01-20)
 
 ### Bug Fixes
