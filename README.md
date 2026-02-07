@@ -53,11 +53,10 @@ Please note that it's currently still under construction.
 
 ## Pre-commit hooks
 
-This repository comes with pre-commit hooks, which are stored in
-[`.hooks`](.hooks). To enable the hooks issue:
+This repository comes with pre-commit hooks. To enable the hooks issue:
 
 ```bash
-git config --local core.hooksPath .hooks/
+uv run pre-commit install --install-hooks
 ```
 
 ## License
