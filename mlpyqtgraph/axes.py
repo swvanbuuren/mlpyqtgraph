@@ -12,7 +12,7 @@ import numpy as np
 
 from mlpyqtgraph.config import options
 from mlpyqtgraph import colors
-from mlpyqtgraph.grid_axes import GLGridAxis
+from mlpyqtgraph.grid_axes import GLGridAxisItem
 from mlpyqtgraph.utils.ticklabels import coord_generator, limit_generator, coord_transformers
 from mlpyqtgraph.utils.GLSurfacePlotItem import GLSurfacePlotItem
 
@@ -310,7 +310,7 @@ class Axis3D(GLGraphicsItem):
         super().__init__(parentItem=parentItem)
         antialiasing = options.get_option('antialiasing')
         self.index = index
-        self.grid_axes = GLGridAxis(parentItem=self, line_antialias=antialiasing)
+        self.grid_axes = GLGridAxisItem(parentItem=self, line_antialias=antialiasing)
         self.default_surface_options = {
             'color': (0, 0, 0, 1),
             'showGrid': True,
