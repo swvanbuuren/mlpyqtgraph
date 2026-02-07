@@ -8,8 +8,8 @@ from mlpyqtgraph.grid_axes import GLGridAxisItem
 from mlpyqtgraph.config import options
 
 
-def float_to_str(*args, decimals=1):
-    return [f'{x:.{decimals}f}' for x in args]
+def float_to_str(*args, decimals=2):
+    return [f'{x:.{decimals}g}' for x in args]
 
 def gen_surface_plt():
     extent = 10
@@ -59,7 +59,7 @@ def main():
     }
     new_coords_labels = {
         'x': float_to_str(-lim, 0.0, lim),
-        'y': float_to_str(-lim, 0.0, 0.75*lim),
+        'y': float_to_str(-lim, 0.0, lim),
         'z': float_to_str(-2, -1, 0.0, 1, 2),
     }
     new_limits = {

@@ -25,7 +25,6 @@ def main():
     ax.aspect_ratio = 'flat'
     ax.azimuth = 315
     ax.projection = 'orthographic'
-    ax.label_fmt = '.0f'
 
 if __name__ == '__main__':
     main()

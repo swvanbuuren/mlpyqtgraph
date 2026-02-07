@@ -23,7 +23,6 @@ def main():
     mpg.surf(x, y, z)
     ax = mpg.gca()
     ax.zlim = (-4, 4)
-    ax.label_fmt = '.0f'
 
 
 if __name__ == '__main__':

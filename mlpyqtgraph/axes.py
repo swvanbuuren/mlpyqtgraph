@@ -325,7 +325,7 @@ class Axis3D(GLGraphicsItem):
         self._items: List[Axis3DItem] = []
         self._aspect_ratio = 'auto'
         self._projection_method = options.get_option('projection')
-        self._label_fmt = '.1f'
+        self._label_fmt = '.2g'
         self._lim = { c: [] for c in 'xyz' }
         self._max_no_ticks = { c: 6 for c in 'xyz' }
 
