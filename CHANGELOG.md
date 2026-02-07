@@ -1,5 +1,28 @@
 # CHANGELOG
 
+## v0.10.1 (2026-02-07)
+
+### Bug Fixes
+
+* Nice 3d axes number formatting ([`fc23305`](https://github.com/swvanbuuren/mlpyqtgraph/commit/fc23305203ad8812d646b007f543b94fae04c481))
+
+### Chores
+
+* Update python-semantic-release and publish-action to version 10.0.0 ([`2d8609c`](https://github.com/swvanbuuren/mlpyqtgraph/commit/2d8609c00b323fcae8c7ae783e152d24077e73d3))
+
+* Setup pre-commit to also require passing tests ([`085a095`](https://github.com/swvanbuuren/mlpyqtgraph/commit/085a095599ef6d9a5f6e3638942d50b53fce93b7))
+
+* Use conventional-pre-commit for checking commit messages ([`935cc9a`](https://github.com/swvanbuuren/mlpyqtgraph/commit/935cc9ad8e7e89be5a874f8cb27f27152f7d2e43))
+
+### Refactoring
+
+* Align glgridaxisitem with upstream pr ([`ceac990`](https://github.com/swvanbuuren/mlpyqtgraph/commit/ceac9903cf96f263e77dd3f9097ddb1550f90e61))
+
+* Remove unused custom gltextitem ([`9988d32`](https://github.com/swvanbuuren/mlpyqtgraph/commit/9988d32bf197b77a7e64cf9c90e6794acc8cdffe))
+
+### Testing
+
+* Update grid_axes_test ([`fcee8ff`](https://github.com/swvanbuuren/mlpyqtgraph/commit/fcee8fffc4cd920b8dcfc25425172cee098c1516))
 ## v0.10.0 (2026-02-03)
 
 ### Documentation
