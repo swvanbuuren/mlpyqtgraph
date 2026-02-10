@@ -12,7 +12,6 @@ from typing import List, Optional, Tuple
 
 from pyqtgraph.opengl import GLGraphicsItem
 from pyqtgraph.Qt import QtCore, QtGui, QT_LIB, QtVersion
-from OpenGL import GL
 
 if int(QtVersion.split(".")[0]) >= 6:
     QtOpenGL = importlib.import_module(f"{QT_LIB}.QtOpenGL")
