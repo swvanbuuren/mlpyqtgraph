@@ -60,3 +60,10 @@ def plot3(*args, **kwargs):
     gcf().change_layout('Qt')
     gcf().create_axis(axis_type='3D')
     gca().line(*args, **kwargs)
+
+
+def points3(*args, **kwargs):
+    """ Plots 3D points """
+    gcf().change_layout('Qt')
+    gcf().create_axis(axis_type='3D')
+    gca().points(*args, **kwargs)

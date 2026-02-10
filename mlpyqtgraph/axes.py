@@ -15,6 +15,7 @@ from mlpyqtgraph import colors
 from mlpyqtgraph.grid_axes import GLGridAxisItem
 from mlpyqtgraph.utils.ticklabels import coord_generator, limit_generator, coord_transformers
 from mlpyqtgraph.utils.GLSurfacePlotItem import GLSurfacePlotItem
+from mlpyqtgraph.utils.GLPointsItem import GLPointsItem
 
 
 class RootException(Exception):
@@ -284,7 +285,7 @@ class Axis2D(PlotItem):  # noqa: PLR0904
 
 @dataclass
 class Axis3DItem:
-    instance: GLSurfacePlotItem | GLLinePlotItem
+    instance: GLSurfacePlotItem | GLLinePlotItem | GLPointsItem
     data: tuple
     options: dict
 
@@ -322,6 +323,10 @@ class Axis3D(GLGraphicsItem):
             'antialias': antialiasing,
             'width': 1,
         }
+        self.default_points_options = {
+            'color': (0, 0, 0, 1),
+            'size': 5.0,
+        }
         self._items: List[Axis3DItem] = []
         self._aspect_ratio = 'auto'
         self._projection_method = options.get_option('projection')
@@ -343,6 +348,13 @@ class Axis3D(GLGraphicsItem):
         self._add_item(line, *args, **kwargs)
         self.update()
 
+    def points(self, *args, **kwargs):
+        """ Plots a set of points for given coordinates """
+        kwargs = dict(self.default_points_options, **kwargs)
+        points = GLPointsItem(**kwargs)
+        self._add_item(points, *args, **kwargs)
+        self.update()
+
     def update(self):
         for item in self._items:
             plot_item = item.instance
@@ -355,6 +367,9 @@ class Axis3D(GLGraphicsItem):
             elif isinstance(plot_item, GLLinePlotItem):
                 points = np.column_stack(list(coord_kwargs.values()))
                 plot_item.setData(pos=points)
+            elif isinstance(plot_item, GLPointsItem):
+                points = np.column_stack(list(coord_kwargs.values()))
+                plot_item.setData(pos=points)
             self._set_projection_method(*coord_kwargs.values())
             self.grid_axes.setData(coords=coords, coords_labels=coords_labels, limits=limits)
             self._get_view().setCameraPosition(**self.grid_axes.best_camera(method=self._projection_method))
@@ -365,7 +380,7 @@ class Axis3D(GLGraphicsItem):
             return view
         raise ViewNotDefinedError('Axis3D doesn\'t have a view!')
 
-    def _add_item(self, item: GLSurfacePlotItem | GLLinePlotItem, *data, **options):
+    def _add_item(self, item: GLSurfacePlotItem | GLLinePlotItem | GLPointsItem, *data, **options):
         self._items.append(Axis3DItem(item, data, options))
         self._get_view().addItem(item)
 
