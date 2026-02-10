@@ -1,5 +1,14 @@
 # CHANGELOG
 
+## v0.11.0 (2026-02-10)
+
+### Chores
+
+* Remove unused .hooks ([`1e60dcf`](https://github.com/swvanbuuren/mlpyqtgraph/commit/1e60dcf9e0b032f6edfbafea4b1da8da0b245323))
+
+### Features
+
+* Add glpointsitem and integrate into axis3d and ml_functions for 3d point plotting ([`996578c`](https://github.com/swvanbuuren/mlpyqtgraph/commit/996578cc9cd7f00e8606bbe16092d4dadabdca0a))
 ## v0.10.1 (2026-02-07)
 
 ### Bug Fixes
