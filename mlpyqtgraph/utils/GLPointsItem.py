@@ -35,6 +35,8 @@ class GLPointsItem(GLGraphicsItem):
         self.pos = None
         self.size = 5.0
         self.color = (1.0, 1.0, 1.0, 1.0)
+        self.depth_offset = "auto"
+        self.depth_bias = "auto"
 
         self.m_vbo_position = QtOpenGL.QOpenGLBuffer(
             QtOpenGL.QOpenGLBuffer.Type.VertexBuffer
@@ -56,12 +58,16 @@ class GLPointsItem(GLGraphicsItem):
         ------------------------------------------------------------------------
         pos                   (N,3) array of floats specifying point locations.
         color                 (N,4) array of floats (0.0-1.0) or
-                              tuple of floats specifying
-                              a single color for all points.
+                      tuple of floats specifying
+                      a single color for all points.
         size                  float specifying point size in pixels (default 5.0)
+        depth_offset          tuple (factor, units), "auto", or None.
+                      Uses GL_POLYGON_OFFSET_POINT when supported.
+        depth_bias            float, "auto", or None.
+                      Clip-space bias applied as z -= bias * w.
         ====================  ==================================================
         """
-        args = ["pos", "color", "size"]
+        args = ["pos", "color", "size", "depth_offset", "depth_bias"]
         for k in kwds.keys():
             if k not in args:
                 raise Exception(
@@ -138,6 +144,35 @@ class GLPointsItem(GLGraphicsItem):
         klass._shaderProgram = program
         return program
 
+    def _resolve_depth_settings(self):
+        depth_offset = self.depth_offset
+        depth_bias = self.depth_bias
+
+        if depth_offset != "auto" and depth_bias != "auto":
+            return depth_offset, depth_bias
+
+        is_ortho = False
+        view = self.view()
+        if view is not None:
+            params = view.cameraParams()
+            fov = params.get("fov")
+            if fov is not None and fov <= 1.1:
+                is_ortho = True
+
+        if is_ortho:
+            auto_offset = (0.0, -2.0)
+            auto_bias = 1.0e-6
+        else:
+            auto_offset = (0.0, -1.0)
+            auto_bias = 1.0e-4
+
+        if depth_offset == "auto":
+            depth_offset = auto_offset
+        if depth_bias == "auto":
+            depth_bias = auto_bias
+
+        return depth_offset, depth_bias
+
     def paint(self):
         if self.pos is None:
             return
@@ -173,9 +208,31 @@ class GLPointsItem(GLGraphicsItem):
         else:
             GL.glVertexAttrib4f(loc, *self.color)
 
+        depth_was_enabled = GL.glIsEnabled(GL.GL_DEPTH_TEST)
+        depth_func = GL.glGetIntegerv(GL.GL_DEPTH_FUNC)
+        depth_mask = GL.glGetBooleanv(GL.GL_DEPTH_WRITEMASK)
+        if hasattr(depth_mask, "__len__"):
+            depth_mask = bool(depth_mask[0])
         GL.glEnable(GL.GL_DEPTH_TEST)
         GL.glDepthFunc(GL.GL_LEQUAL)
         GL.glDepthMask(GL.GL_TRUE)
+
+        depth_offset, depth_bias = self._resolve_depth_settings()
+
+        point_offset_supported = hasattr(GL, "GL_POLYGON_OFFSET_POINT")
+        offset_was_enabled = False
+        prev_offset_factor = None
+        prev_offset_units = None
+        if point_offset_supported and depth_offset is not None:
+            offset_was_enabled = GL.glIsEnabled(GL.GL_POLYGON_OFFSET_POINT)
+            prev_offset_factor = GL.glGetFloatv(GL.GL_POLYGON_OFFSET_FACTOR)
+            prev_offset_units = GL.glGetFloatv(GL.GL_POLYGON_OFFSET_UNITS)
+            if hasattr(prev_offset_factor, "__len__"):
+                prev_offset_factor = float(prev_offset_factor[0])
+            if hasattr(prev_offset_units, "__len__"):
+                prev_offset_units = float(prev_offset_units[0])
+            GL.glEnable(GL.GL_POLYGON_OFFSET_POINT)
+            GL.glPolygonOffset(*depth_offset)
 
         sfmt = context.format()
         core_forward_compatible = (
@@ -197,6 +254,9 @@ class GLPointsItem(GLGraphicsItem):
             size_loc = GL.glGetUniformLocation(program, "u_pointSize")
             GL.glUniform1f(size_loc, self.size)
 
+            bias_loc = GL.glGetUniformLocation(program, "u_depthBias")
+            GL.glUniform1f(bias_loc, float(depth_bias or 0.0))
+
             GL.glDrawArrays(GL.GL_POINTS, 0, len(self.pos))
 
         for loc in enabled_locs:
@@ -206,20 +266,30 @@ class GLPointsItem(GLGraphicsItem):
             GL.glDisable(GL.GL_PROGRAM_POINT_SIZE)
             GL.glPointSize(1.0)
 
-        GL.glDisable(GL.GL_DEPTH_TEST)
+        if point_offset_supported and depth_offset is not None:
+            if not offset_was_enabled:
+                GL.glDisable(GL.GL_POLYGON_OFFSET_POINT)
+            if prev_offset_factor is not None and prev_offset_units is not None:
+                GL.glPolygonOffset(prev_offset_factor, prev_offset_units)
+
+        GL.glDepthFunc(depth_func)
+        GL.glDepthMask(depth_mask)
+        if not depth_was_enabled:
+            GL.glDisable(GL.GL_DEPTH_TEST)
 
 
 SHADER_LEGACY = {
     GL.GL_VERTEX_SHADER: """
         uniform mat4 u_mvp;
         uniform float u_pointSize;
+        uniform float u_depthBias;
         attribute vec4 a_position;
         attribute vec4 a_color;
         varying vec4 v_color;
         void main() {
             v_color = a_color;
             vec4 clip = u_mvp * a_position;
-            clip.z -= 1e-4 * clip.w;
+            clip.z -= u_depthBias * clip.w;
             gl_Position = clip;
             gl_PointSize = u_pointSize;
         }
@@ -239,13 +309,14 @@ SHADER_CORE = {
     GL.GL_VERTEX_SHADER: """
         uniform mat4 u_mvp;
         uniform float u_pointSize;
+        uniform float u_depthBias;
         in vec4 a_position;
         in vec4 a_color;
         out vec4 v_color;
         void main() {
             v_color = a_color;
             vec4 clip = u_mvp * a_position;
-            clip.z -= 1e-4 * clip.w;
+            clip.z -= u_depthBias * clip.w;
             gl_Position = clip;
             gl_PointSize = u_pointSize;
         }
@@ -261,3 +332,5 @@ SHADER_CORE = {
         }
     """,
 }
+
+

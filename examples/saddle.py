@@ -6,7 +6,7 @@ import numpy as np
 import mlpyqtgraph as mpg
 
 
-@mpg.plotter
+@mpg.plotter(projection='orthographic')
 def main():
     """ Examples with surface plots """
     nx, ny = 20, 20
@@ -20,7 +20,7 @@ def main():
 
     mpg.figure(title='Saddle example')
     mpg.surf(x, y, z)
-    mpg.points3(xp, yp, zp, color=(0.8, 0.1, 0.1, 1), size=3)
+    mpg.points3(xp, yp, zp, color=(0.8, 0.1, 0.1, 1), size=4)
 
 
 if __name__ == '__main__':
