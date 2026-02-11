@@ -1,5 +1,16 @@
 # CHANGELOG
 
+## v0.11.2 (2026-02-11)
+
+### Bug Fixes
+
+* Axis3d grid scaling with multiple items ([`091cb62`](https://github.com/swvanbuuren/mlpyqtgraph/commit/091cb621839cd7b43b1159d0d14aa0ec88484b9c))
+
+### Refactoring
+
+* Refactor projection method to set fov once, let best_camera handle distance ([`92e105d`](https://github.com/swvanbuuren/mlpyqtgraph/commit/92e105df964c6ba9c17826374565f45fac12ec77))
+
+* Consider only finite values to avoid valueerror from all-nan slices ([`e47827f`](https://github.com/swvanbuuren/mlpyqtgraph/commit/e47827f0fdc7be95f9e47241109c7aec0b3002de))
 ## v0.11.1 (2026-02-11)
 
 ### Bug Fixes
