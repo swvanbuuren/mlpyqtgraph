@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## v0.11.1 (2026-02-11)
+
+### Bug Fixes
+
+* Depth testing issues with glpointsitem ([`57d0f49`](https://github.com/swvanbuuren/mlpyqtgraph/commit/57d0f4984875bcd4b0078ea1ebb5ba63c8f482ef))
 ## v0.11.0 (2026-02-10)
 
 ### Chores
