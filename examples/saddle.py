@@ -21,6 +21,8 @@ def main():
     mpg.figure(title='Saddle example')
     mpg.surf(x, y, z)
     mpg.points3(xp, yp, zp, color=(0.8, 0.1, 0.1, 1), size=4)
+    ax = mpg.gca()
+    ax.azimuth = 240
 
 
 if __name__ == '__main__':
