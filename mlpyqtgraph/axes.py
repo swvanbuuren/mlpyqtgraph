@@ -378,8 +378,10 @@ class Axis3D(GLGraphicsItem):
             elif isinstance(plot_item, GLPointsItem):
                 points = np.column_stack(list(coord_kwargs.values()))
                 plot_item.setData(pos=points)
-            self._set_projection_method(*coord_kwargs.values())
         if coords is not None:
+            # Set FOV based on projection method, distance will be set by best_camera()
+            field_of_view = 60 if self._projection_method == 'perspective' else 1
+            self._get_view().setCameraParams(fov=field_of_view)
             self.grid_axes.setData(coords=coords, coords_labels=coords_labels, limits=limits)
             self._get_view().setCameraPosition(
                 **self.grid_axes.best_camera(method=self._projection_method)
@@ -477,15 +479,6 @@ class Axis3D(GLGraphicsItem):
         if current_colormap := colormap.get(colormap_type):
             colors = current_colormap.map(normalized_heights, mode=ColorMap.FLOAT)
             surface._meshdata.setFaceColors(colors)
-
-    def _set_projection_method(self, *coords):
-        """ Sets the projection method, either perspective or orthographic """
-        object_size = (sum([np.ptp(coord)**3.0 for coord in coords]))**(1.0/3.0)
-        field_of_view = 60
-        if self._projection_method == 'orthographic':
-            field_of_view = 1
-        distance = 0.75*object_size/math.tan(0.5*field_of_view/180.0*math.pi)
-        self._get_view().setCameraParams(fov=field_of_view, distance=distance)
 
     @property
     def azimuth(self):
