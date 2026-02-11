@@ -356,10 +356,18 @@ class Axis3D(GLGraphicsItem):
         self.update()
 
     def update(self):
+        if not self._items:
+            super().update()
+            return
+        aggregated_limits = self._aggregate_limits()
+        shared_limits = self._resolve_limits(aggregated_limits)
+        coords = coords_labels = limits = None
         for item in self._items:
             plot_item = item.instance
             coord_kwargs = dict(zip('xyz', item.data))
-            coords, coords_labels, limits = self._transform_coordinates(coord_kwargs)
+            coords, coords_labels, limits = self._transform_coordinates(
+                coord_kwargs, limits=shared_limits
+            )
             if isinstance(plot_item, GLSurfacePlotItem):
                 plot_item.setData(**coord_kwargs)
                 if colormap := item.options.get('colormap'):
@@ -371,9 +379,47 @@ class Axis3D(GLGraphicsItem):
                 points = np.column_stack(list(coord_kwargs.values()))
                 plot_item.setData(pos=points)
             self._set_projection_method(*coord_kwargs.values())
+        if coords is not None:
             self.grid_axes.setData(coords=coords, coords_labels=coords_labels, limits=limits)
-            self._get_view().setCameraPosition(**self.grid_axes.best_camera(method=self._projection_method))
+            self._get_view().setCameraPosition(
+                **self.grid_axes.best_camera(method=self._projection_method)
+            )
         super().update()
+
+    def _aggregate_limits(self) -> dict | None:
+        """Aggregate min/max limits for each axis across all items."""
+        if not self._items:
+            return None
+        mins: dict[str, float | None] = {key: None for key in 'xyz'}
+        maxs: dict[str, float | None] = {key: None for key in 'xyz'}
+        for item in self._items:
+            coord_kwargs = dict(zip('xyz', item.data))
+            for key, values in coord_kwargs.items():
+                values = np.asarray(values)
+                if values.size == 0:
+                    continue
+                min_val = float(np.nanmin(values))
+                max_val = float(np.nanmax(values))
+                mins[key] = min_val if mins[key] is None else min(mins[key], min_val)
+                maxs[key] = max_val if maxs[key] is None else max(maxs[key], max_val)
+        return {key: [mins[key], maxs[key]] for key in 'xyz'}
+
+    def _resolve_limits(self, aggregated_limits: dict | None) -> dict:
+        """Resolve final limits from custom limits and aggregated data bounds."""
+        if aggregated_limits is None:
+            return self._lim
+        resolved = {}
+        for key in 'xyz':
+            user_limits = self._lim.get(key, [])
+            agg_min, agg_max = aggregated_limits[key]
+            min_limit = user_limits[0] if len(user_limits) > 0 else None
+            max_limit = user_limits[1] if len(user_limits) > 1 else None
+            if min_limit is None:
+                min_limit = agg_min
+            if max_limit is None:
+                max_limit = agg_max
+            resolved[key] = [min_limit, max_limit]
+        return resolved
 
     def _get_view(self) -> GLViewWidget:
         if view := self.view():
@@ -396,9 +442,13 @@ class Axis3D(GLGraphicsItem):
             raise ValueError()
         return {label: (0.0, ratio) for label, ratio in zip('xyz', ratios)}
 
-    def _transform_coordinates(self, coord_kwargs):
+    def _transform_coordinates(self, coord_kwargs, limits=None):
         """ Transforms the given coordinates according to fixed coords """
-        coords_labels = dict(coord_generator(coord_kwargs, max_no_ticks=self._max_no_ticks, limits=self._lim))
+        coords_labels = dict(coord_generator(
+            coord_kwargs,
+            max_no_ticks=self._max_no_ticks,
+            limits=limits if limits is not None else self._lim
+        ))
         if aspect_coords := self._aspect_coords():
             coords = {}
             for key, transformer in coord_transformers(coords_labels, aspect_coords):
