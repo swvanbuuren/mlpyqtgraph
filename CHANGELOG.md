@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## v0.12.0 (2026-02-14)
+
+### Features
+
+* Add axis 3d export functionality ([`74f0580`](https://github.com/swvanbuuren/mlpyqtgraph/commit/74f0580e2103633e871317622960a1220be2ac53))
 ## v0.11.2 (2026-02-11)
 
 ### Bug Fixes
