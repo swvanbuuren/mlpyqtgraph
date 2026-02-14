@@ -615,6 +615,10 @@ class Axis3D(GLGraphicsItem):
         self._max_no_ticks['z'] = self._check_ticks(no_ticks)
         self.update()
 
+    def export(self, filename):
+        """ Exports the current view to an image file """
+        self._get_view().grabFramebuffer().save(filename)
+
     def delete(self):
         """ Closes the axis """
 

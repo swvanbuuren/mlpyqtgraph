@@ -36,6 +36,7 @@ class AxisWorker(containers.WorkerItem):
     xticks = factory.attribute()
     yticks = factory.attribute()
     zticks = factory.attribute()
+    export = factory.method()
 
 
 class FigureWorker(containers.WorkerItem):
