@@ -499,6 +499,15 @@ class Axis3D(GLGraphicsItem):
         self._get_view().setCameraParams(elevation=value)
 
     @property
+    def distance(self):
+        """ View distance """
+        return self._get_view().cameraParams()['distance']
+
+    @distance.setter
+    def distance(self, value):
+        self._get_view().setCameraParams(distance=value)
+
+    @property
     def aspect_ratio(self):
         """ Axes and data scaling aspect ratio
         

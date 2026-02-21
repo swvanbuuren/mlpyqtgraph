@@ -27,6 +27,7 @@ class AxisWorker(containers.WorkerItem):
     set_yticks = factory.method()
     azimuth = factory.attribute()
     elevation = factory.attribute()
+    distance = factory.attribute()
     aspect_ratio = factory.attribute()
     projection = factory.attribute()
     label_fmt = factory.attribute()
