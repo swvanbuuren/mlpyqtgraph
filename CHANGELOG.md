@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## v0.13.0 (2026-02-21)
+
+### Features
+
+* Add distance property for 3d axes ([`a9426bf`](https://github.com/swvanbuuren/mlpyqtgraph/commit/a9426bfa89a2ed5a5d6a794f3d39726e99abb1c7))
 ## v0.12.0 (2026-02-14)
 
 ### Features
