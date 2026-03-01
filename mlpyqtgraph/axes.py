@@ -400,13 +400,8 @@ class Axis3D(GLGraphicsItem):
                 values = np.asarray(values)
                 if values.size == 0:
                     continue
-                # Consider only finite values to avoid ValueError from all-NaN slices
-                finite_values = values[np.isfinite(values)]
-                if finite_values.size == 0:
-                    # Skip arrays that contain no finite values (all-NaN or all-inf)
-                    continue
-                min_val = float(finite_values.min())
-                max_val = float(finite_values.max())
+                min_val = float(values.min())
+                max_val = float(values.max())
                 mins[key] = min_val if mins[key] is None else min(mins[key], min_val)
                 maxs[key] = max_val if maxs[key] is None else max(maxs[key], max_val)
         return {key: [mins[key], maxs[key]] for key in 'xyz'}
