@@ -152,7 +152,7 @@ class Axis2D(PlotItem):  # noqa: PLR0904
         return self.ctrl.xGridCheck.isChecked() and self.ctrl.yGridCheck.isChecked()
 
     @grid.setter
-    def grid(self, active=False):
+    def grid(self, active):
         """ Set gris activation """
         self.showGrid(x=active, y=active, alpha=0.5)
 
@@ -184,9 +184,19 @@ class Axis2D(PlotItem):  # noqa: PLR0904
         return self.x_axis.label.toPlainText()
 
     @xlabel.setter
-    def xlabel(self, label, units=None):
+    def xlabel(self, label):
         """ Change x label """
-        self.x_axis.setLabel(label, units=units)
+        self.x_axis.setLabel(label, units=self.x_axis.labelUnits)
+
+    @property
+    def xunits(self):
+        """ Obtain x-axis units """
+        return self.x_axis.labelUnits
+
+    @xunits.setter
+    def xunits(self, units):
+        """ Change x-axis units """
+        self.x_axis.setLabel(self.x_axis.labelText, units=units)
 
     @property
     def ylabel(self):
@@ -194,9 +204,19 @@ class Axis2D(PlotItem):  # noqa: PLR0904
         return self.y_axis.label.toPlainText()
 
     @ylabel.setter
-    def ylabel(self, label, units=None):
+    def ylabel(self, label):
         """ Change y label """
-        self.y_axis.setLabel(label, units=units)
+        self.y_axis.setLabel(label, units=self.y_axis.labelUnits)
+
+    @property
+    def yunits(self):
+        """ Obtain y-axis units """
+        return self.y_axis.labelUnits
+
+    @yunits.setter
+    def yunits(self, units):
+        """ Change y-axis units """
+        self.y_axis.setLabel(self.y_axis.labelText, units=units)
 
     @property
     def xticks(self):
