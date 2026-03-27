@@ -42,6 +42,7 @@ class AxisWorker(containers.WorkerItem):
     export = factory.method()
     show = factory.method()
     hide = factory.method()
+    update = factory.method()
 
 
 class FigureWorker(containers.WorkerItem):

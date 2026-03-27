@@ -31,6 +31,7 @@ def main():
     mpg.points3(xp, yp, zp, color=(0.9, 0.1, 0.1, 1), size=6)
     ax = mpg.gca()
     ax.azimuth = 240
+    ax.update()
 
 
 if __name__ == '__main__':

@@ -1,7 +1,6 @@
 """ mlpyqtgraph axes module, with 2D and 3D Axis classes """
 
 
-import math
 from dataclasses import dataclass
 from typing import List
 from pyqtgraph import PlotItem, ColorMap, colormap, QtCore, Point, mkBrush, mkPen
@@ -353,6 +352,7 @@ class Axis3D(GLGraphicsItem):
         self._label_fmt = '.2g'
         self._lim = { c: [] for c in 'xyz' }
         self._max_no_ticks = { c: 6 for c in 'xyz' }
+        self._camera_params = {}
 
     def surf(self, *args, **kwargs):
         """ Adds a 3D surface plot item to the view widget  """
@@ -406,6 +406,7 @@ class Axis3D(GLGraphicsItem):
             self._get_view().setCameraPosition(
                 **self.grid_axes.best_camera(method=self._projection_method)
             )
+        self._get_view().setCameraParams(**self._camera_params)
         super().update()
 
     def _aggregate_limits(self) -> dict | None:
@@ -502,7 +503,7 @@ class Axis3D(GLGraphicsItem):
 
     @azimuth.setter
     def azimuth(self, value):
-        self._get_view().setCameraParams(azimuth=value)
+        self._camera_params['azimuth'] = value
 
     @property
     def elevation(self):
@@ -511,7 +512,7 @@ class Axis3D(GLGraphicsItem):
 
     @elevation.setter
     def elevation(self, value):
-        self._get_view().setCameraParams(elevation=value)
+        self._camera_params['elevation'] = value
 
     @property
     def distance(self):
@@ -520,7 +521,7 @@ class Axis3D(GLGraphicsItem):
 
     @distance.setter
     def distance(self, value):
-        self._get_view().setCameraParams(distance=value)
+        self._camera_params['distance'] = value
 
     @property
     def aspect_ratio(self):
@@ -540,7 +541,6 @@ class Axis3D(GLGraphicsItem):
     def aspect_ratio(self, ratio='auto'):
         """ Set aspect ratio of the 3D axis """
         self._aspect_ratio = ratio
-        self.update()
 
     @property
     def projection(self):
@@ -550,7 +550,6 @@ class Axis3D(GLGraphicsItem):
     @projection.setter
     def projection(self, projection_method='perspective'):
         self._projection_method = projection_method
-        self.update()
 
     @property
     def label_fmt(self):
@@ -560,7 +559,6 @@ class Axis3D(GLGraphicsItem):
     @label_fmt.setter
     def label_fmt(self, fmt: str):
         self._label_fmt = fmt
-        self.update()
 
     @property
     def xlim(self):
@@ -570,7 +568,6 @@ class Axis3D(GLGraphicsItem):
     @xlim.setter
     def xlim(self, xlim: list):
         self._lim['x'] = xlim
-        self.update()
 
     @property
     def ylim(self):
@@ -580,7 +577,6 @@ class Axis3D(GLGraphicsItem):
     @ylim.setter
     def ylim(self, ylim: list):
         self._lim['y'] = ylim
-        self.update()
 
     @property
     def zlim(self):
@@ -590,7 +586,6 @@ class Axis3D(GLGraphicsItem):
     @zlim.setter
     def zlim(self, zlim: list):
         self._lim['z'] = zlim
-        self.update()
 
     @staticmethod
     def _check_ticks(no_ticks):
@@ -611,7 +606,6 @@ class Axis3D(GLGraphicsItem):
     @xticks.setter
     def xticks(self, no_ticks: int):
         self._max_no_ticks['x'] = self._check_ticks(no_ticks)
-        self.update()
 
     @property
     def yticks(self):
@@ -624,7 +618,6 @@ class Axis3D(GLGraphicsItem):
     @yticks.setter
     def yticks(self, no_ticks: int):
         self._max_no_ticks['y'] = self._check_ticks(no_ticks)
-        self.update()
 
     @property
     def zticks(self):
@@ -637,7 +630,6 @@ class Axis3D(GLGraphicsItem):
     @zticks.setter
     def zticks(self, no_ticks: int):
         self._max_no_ticks['z'] = self._check_ticks(no_ticks)
-        self.update()
 
     def export(self, filename):
         """ Exports the current view to an image file """
