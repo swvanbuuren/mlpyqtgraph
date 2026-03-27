@@ -1,5 +1,18 @@
 # CHANGELOG
 
+## v1.0.0 (2026-03-27)
+
+### Features
+
+* Allow multiple property changes without redraw ([`ddd7132`](https://github.com/swvanbuuren/mlpyqtgraph/commit/ddd71329510032279745e24ac602bdaf3d1ecbde))
+
+* Enhance axis2d class with x/y label and unit properties ([`faf6b14`](https://github.com/swvanbuuren/mlpyqtgraph/commit/faf6b142b2d20a4d7947648ed33b0d9064ce01a9))
+
+* Add show and hide methods to axisworker class ([`d8be88b`](https://github.com/swvanbuuren/mlpyqtgraph/commit/d8be88b76e742116826955233e081c7f2a5217db))
+
+### Refactoring
+
+* Simplify min/max calculation by removing finite value checks in axis3d ([`a45d357`](https://github.com/swvanbuuren/mlpyqtgraph/commit/a45d357a497ad623831db9d0a3fe281bb53364e6))
 ## v0.13.0 (2026-02-21)
 
 ### Features
