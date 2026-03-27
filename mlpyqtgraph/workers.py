@@ -38,6 +38,8 @@ class AxisWorker(containers.WorkerItem):
     yticks = factory.attribute()
     zticks = factory.attribute()
     export = factory.method()
+    show = factory.method()
+    hide = factory.method()
 
 
 class FigureWorker(containers.WorkerItem):
