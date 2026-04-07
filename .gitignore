@@ -4,6 +4,5 @@ doc/build/
 **/__pycache__
 mlpyqtgraph.egg-info/
 build/
-uv.lock
 .venv/
 .ruff_cache/
