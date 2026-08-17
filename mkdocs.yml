@@ -4,7 +4,7 @@ repo_url: https://github.com/swvanbuuren/mlpyqtgraph
 repo_name: swvanbuuren/mlpyqtgraph
 
 theme:
-  name: material
+  variant: classic
   features:
   - navigation.sections
   - navigation.tabs

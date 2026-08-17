@@ -6,3 +6,4 @@ mlpyqtgraph.egg-info/
 build/
 .venv/
 .ruff_cache/
+site/
